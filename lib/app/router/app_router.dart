@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/models/auth_state.dart';
@@ -7,6 +6,9 @@ import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/splash_screen.dart';
+import '../../features/jobs/screens/home_screen.dart';
+import '../../features/jobs/screens/job_details_screen.dart';
+import '../../features/jobs/screens/job_list_screen.dart';
 import 'route_names.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -58,9 +60,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.home,
         name: RouteNames.home,
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Home Screen (Authenticated)')),
-        ),
+        builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.jobs,
+        name: RouteNames.jobs,
+        builder: (context, state) => const JobListScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.jobDetails,
+        name: RouteNames.jobDetails,
+        builder: (context, state) {
+          final jobId = state.pathParameters['id'] ?? '';
+          return JobDetailsScreen(jobId: jobId);
+        },
       ),
     ],
   );
