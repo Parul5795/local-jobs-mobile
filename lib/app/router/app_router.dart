@@ -14,6 +14,12 @@ import '../../features/applications/screens/application_details_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/profile/screens/settings_screen.dart';
+import '../../features/employer/screens/employer_dashboard_screen.dart';
+import '../../features/employer/screens/my_jobs_screen.dart';
+import '../../features/employer/screens/employer_job_detail_screen.dart';
+import '../../features/employer/screens/job_form_screen.dart';
+import '../../features/employer/screens/applicants_screen.dart';
+import '../../features/employer/screens/applicant_detail_screen.dart';
 import 'route_names.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -108,6 +114,46 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.settings,
         name: RouteNames.settings,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.employerDashboard,
+        name: RouteNames.employerDashboard,
+        builder: (context, state) => const EmployerDashboardScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.employerMyJobs,
+        name: RouteNames.employerMyJobs,
+        builder: (context, state) => const MyJobsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.employerCreateJob,
+        name: RouteNames.employerCreateJob,
+        builder: (context, state) => const JobFormScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.employerEditJob,
+        name: RouteNames.employerEditJob,
+        builder: (context, state) =>
+            JobFormScreen(jobId: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: RoutePaths.employerJobDetails,
+        name: RouteNames.employerJobDetails,
+        builder: (context, state) =>
+            EmployerJobDetailScreen(jobId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: RoutePaths.employerApplicants,
+        name: RouteNames.employerApplicants,
+        builder: (context, state) =>
+            ApplicantsScreen(jobId: state.pathParameters['jobId'] ?? ''),
+      ),
+      GoRoute(
+        path: RoutePaths.employerApplicantDetails,
+        name: RouteNames.employerApplicantDetails,
+        builder: (context, state) => ApplicantDetailScreen(
+          applicantId: state.pathParameters['id'] ?? '',
+        ),
       ),
     ],
   );

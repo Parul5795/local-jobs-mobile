@@ -11,6 +11,13 @@ class RouteNames {
   static const String profile = 'profile';
   static const String editProfile = 'edit-profile';
   static const String settings = 'settings';
+  static const String employerDashboard = 'employer-dashboard';
+  static const String employerMyJobs = 'employer-my-jobs';
+  static const String employerJobDetails = 'employer-job-detail';
+  static const String employerCreateJob = 'employer-create-job';
+  static const String employerEditJob = 'employer-edit-job';
+  static const String employerApplicants = 'employer-applicants';
+  static const String employerApplicantDetails = 'employer-applicant-detail';
 }
 
 class RoutePaths {
@@ -26,4 +33,11 @@ class RoutePaths {
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
   static const String settings = '/settings';
+  static const String employerDashboard = '/employer';
+  static const String employerMyJobs = '/employer/jobs';
+  static const String employerJobDetails = '/employer/jobs/:id';
+  static const String employerCreateJob = '/employer/jobs/create';
+  static const String employerEditJob = '/employer/jobs/:id/edit';
+  static const String employerApplicants = '/employer/jobs/:jobId/applicants';
+  static const String employerApplicantDetails = '/employer/applicants/:id';
 }
