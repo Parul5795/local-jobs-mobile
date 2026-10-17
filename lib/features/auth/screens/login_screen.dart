@@ -9,6 +9,7 @@ import '../../../shared/widgets/loading_overlay.dart';
 import '../../../app/router/route_names.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_role_selector.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -22,6 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  String _selectedRole = 'JobSeeker';
 
   @override
   void dispose() {
@@ -32,9 +34,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _login() {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authStateProvider.notifier).login(
+      ref
+          .read(authStateProvider.notifier)
+          .login(
             _emailController.text.trim(),
             _passwordController.text,
+            _selectedRole,
           );
     }
   }
@@ -48,7 +53,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next is AuthError) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.message), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: Text(next.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     });
@@ -73,7 +81,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: Theme.of(context).textTheme.headlineMedium,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
+                    AuthRoleSelector(
+                      selectedRole: _selectedRole,
+                      onChanged: (role) => setState(() {
+                        _selectedRole = role;
+                        _emailController.text = role == 'Employer'
+                            ? 'employer@test.com'
+                            : 'jobseeker@test.com';
+                        _passwordController.clear();
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Demo: ${_selectedRole == 'Employer' ? 'employer' : 'jobseeker'}@test.com / password',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
                     AppTextField(
                       label: 'Email',
                       controller: _emailController,
@@ -89,7 +114,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
                         ),
                         onPressed: () {
                           setState(() {
@@ -103,22 +130,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => context.pushNamed(RouteNames.forgotPassword),
+                        onPressed: () =>
+                            context.pushNamed(RouteNames.forgotPassword),
                         child: const Text('Forgot Password?'),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    AppButton(
-                      text: 'Login',
-                      onPressed: _login,
-                    ),
+                    AppButton(text: 'Login', onPressed: _login),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         const Text("Don't have an account?"),
                         TextButton(
-                          onPressed: () => context.pushNamed(RouteNames.register),
+                          onPressed: () =>
+                              context.pushNamed(RouteNames.register),
                           child: const Text('Sign Up'),
                         ),
                       ],

@@ -16,6 +16,7 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
+  final _email = TextEditingController();
   final _phone = TextEditingController();
   final _bio = TextEditingController();
   final _location = TextEditingController();
@@ -25,6 +26,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _email.dispose();
     _phone.dispose();
     _bio.dispose();
     _location.dispose();
@@ -37,6 +39,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final profile = profileState.asData?.value;
     if (profile != null && !_initialized) {
       _name.text = profile.fullName;
+      _email.text = profile.email;
       _phone.text = profile.phone;
       _bio.text = profile.bio;
       _location.text = profile.location;
@@ -117,7 +120,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       const SizedBox(height: 16),
                       AppTextField(
                         label: 'Email',
-                        controller: TextEditingController(text: profile.email),
+                        controller: _email,
                         enabled: false,
                         prefixIcon: const Icon(Icons.email_outlined),
                       ),

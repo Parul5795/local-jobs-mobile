@@ -50,7 +50,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (authState is Authenticated) {
-        return isLoggingIn || isSplash ? RoutePaths.home : null;
+        final isEmployer = authState.user.role.toLowerCase().contains(
+          'employer',
+        );
+        if (state.matchedLocation.startsWith('/employer') && !isEmployer) {
+          return RoutePaths.home;
+        }
+        final roleHome = isEmployer
+            ? RoutePaths.employerDashboard
+            : RoutePaths.home;
+        return isLoggingIn || isSplash ? roleHome : null;
       }
 
       return null;
@@ -103,8 +112,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.applicationReview,
         name: RouteNames.applicationReview,
-        builder: (context, state) =>
-            ApplicationReviewScreen(draft: state.extra! as ApplicationDraft),
+        builder: (context, state) => ApplicationReviewScreen(
+          draft: state.extra is ApplicationDraft
+              ? state.extra! as ApplicationDraft
+              : null,
+        ),
       ),
       GoRoute(
         path: RoutePaths.applicationSuccess,

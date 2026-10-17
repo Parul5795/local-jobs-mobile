@@ -18,6 +18,9 @@ class ApplicationDetailsScreen extends ConsumerWidget {
     final applicationAsync = ref.watch(
       applicationDetailsProvider(applicationId),
     );
+    final isWithdrawing = ref
+        .watch(applicationsControllerProvider)
+        .isWithdrawing;
 
     return Scaffold(
       appBar: AppBar(
@@ -212,16 +215,18 @@ class ApplicationDetailsScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () {
-                        // TODO: Implement withdraw application
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Application withdrawn'),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.close),
-                      label: const Text('Withdraw Application'),
+                      onPressed: isWithdrawing
+                          ? null
+                          : () => _confirmWithdraw(context, ref, applicationId),
+                      icon: isWithdrawing
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.close),
+                      label: Text(
+                        isWithdrawing ? 'Withdrawing…' : 'Withdraw Application',
+                      ),
                     ),
                   ),
                 const SizedBox(height: 24),
@@ -242,6 +247,52 @@ class ApplicationDetailsScreen extends ConsumerWidget {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     } catch (_) {
       return dateString;
+    }
+  }
+}
+
+Future<void> _confirmWithdraw(
+  BuildContext context,
+  WidgetRef ref,
+  String applicationId,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Withdraw application?'),
+      content: const Text(
+        'This application will be removed from your application list.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('Keep application'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('Withdraw'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  try {
+    await ref
+        .read(applicationsControllerProvider.notifier)
+        .withdrawApplication(applicationId);
+    ref.invalidate(applicationDetailsProvider(applicationId));
+    if (context.mounted) {
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Application withdrawn.')),
+      );
+    }
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not withdraw application: $error')),
+      );
     }
   }
 }

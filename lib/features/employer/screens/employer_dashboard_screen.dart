@@ -6,6 +6,7 @@ import '../providers/employer_provider.dart';
 import '../widgets/employer_job_card.dart';
 import '../widgets/stat_card.dart';
 import '../../jobs/widgets/empty_state.dart';
+import '../../notifications/providers/notifications_provider.dart';
 
 class EmployerDashboardScreen extends ConsumerWidget {
   static const String routeName = 'employer-dashboard';
@@ -16,11 +17,22 @@ class EmployerDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(employerDashboardProvider);
     final theme = Theme.of(context);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Employer Dashboard'),
         actions: [
+          IconButton(
+            tooltip:
+                'Notifications${unreadCount > 0 ? ', $unreadCount unread' : ''}',
+            onPressed: () => context.pushNamed('notifications'),
+            icon: Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
+              child: const Icon(Icons.notifications_outlined),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.account_circle_outlined),
             tooltip: 'Profile',
@@ -83,7 +95,7 @@ class EmployerDashboardScreen extends ConsumerWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 1.35,
+                          childAspectRatio: 1,
                           children: [
                             StatCard(
                               label: 'Active Jobs',

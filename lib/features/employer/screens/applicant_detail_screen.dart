@@ -204,6 +204,29 @@ class _ApplicantBodyState extends ConsumerState<_ApplicantBody> {
 
   Future<void> _updateStatus(ApplicationStatus status) async {
     if (_isUpdating) return;
+    if (status == ApplicationStatus.rejected ||
+        status == ApplicationStatus.hired) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('${status.label} applicant?'),
+          content: Text(
+            'Update this applicant status to ${status.label.toLowerCase()}?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(status.label),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
     final applicant = widget.applicant;
     setState(() => _isUpdating = true);
     try {

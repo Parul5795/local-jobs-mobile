@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/api_exceptions.dart';
-import '../models/auth_response.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
 import '../models/user_model.dart';
@@ -9,8 +7,7 @@ import 'auth_api_service.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final authApiService = ref.watch(authApiServiceProvider);
-  final secureStorageService = ref.watch(secureStorageServiceProvider);
-  return AuthRepositoryImpl(authApiService, secureStorageService);
+  return AuthRepositoryImpl(authApiService);
 });
 
 abstract class AuthRepository {
@@ -19,22 +16,22 @@ abstract class AuthRepository {
   Future<void> forgotPassword(String email);
   Future<UserModel> getCurrentUser();
   Future<void> logout();
-  Future<bool> hasToken();
+  Future<bool> hasSession();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthApiService _apiService;
-  final SecureStorageService _secureStorage;
+  UserModel? _currentUser;
 
-  AuthRepositoryImpl(this._apiService, this._secureStorage);
+  AuthRepositoryImpl(this._apiService);
 
   @override
   Future<UserModel> login(LoginRequest request) async {
     try {
       final response = await _apiService.login(request);
       if (response.success && response.data != null) {
-        await _saveTokens(response.data!);
-        return response.data!.user;
+        _currentUser = response.data!.user;
+        return _currentUser!;
       } else {
         throw ApiException(response.message ?? 'Login failed');
       }
@@ -48,8 +45,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final response = await _apiService.register(request);
       if (response.success && response.data != null) {
-        await _saveTokens(response.data!);
-        return response.data!.user;
+        _currentUser = response.data!.user;
+        return _currentUser!;
       } else {
         throw ApiException(response.message ?? 'Registration failed');
       }
@@ -72,37 +69,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserModel> getCurrentUser() async {
-    try {
-      final token = await _secureStorage.getAccessToken();
-      if (token == null || token.isEmpty) {
-        throw UnauthorizedException('No token found');
-      }
-      final response = await _apiService.me();
-      if (response.success && response.data != null) {
-        return response.data!;
-      } else {
-        throw UnauthorizedException(response.message ?? 'Failed to fetch user');
-      }
-    } catch (e) {
-      rethrow;
-    }
+    final user = _currentUser;
+    if (user == null) throw UnauthorizedException('No active mock session');
+    return user;
   }
 
   @override
   Future<void> logout() async {
-    await _secureStorage.clearTokens();
+    _currentUser = null;
   }
 
   @override
-  Future<bool> hasToken() async {
-    final token = await _secureStorage.getAccessToken();
-    return token != null && token.isNotEmpty;
-  }
-
-  Future<void> _saveTokens(AuthResponse response) async {
-    await _secureStorage.saveTokens(
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-    );
-  }
+  Future<bool> hasSession() async => _currentUser != null;
 }

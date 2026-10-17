@@ -150,8 +150,28 @@ class JobDetailsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            const Center(child: Text('Failed to load job details')),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off_outlined, size: 48),
+                const SizedBox(height: 12),
+                Text(
+                  'Could not load job details',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => ref.invalidate(jobDetailsProvider(jobId)),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try again'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       bottomNavigationBar: job == null
           ? null
@@ -167,6 +187,15 @@ class JobDetailsScreen extends ConsumerWidget {
                         ),
                         icon: const Icon(Icons.check_circle_outline),
                         label: const Text('Already Applied · View application'),
+                      )
+                    : applicationsState.error != null &&
+                          applicationsState.allApplications.isEmpty
+                    ? FilledButton.icon(
+                        onPressed: () => ref
+                            .read(applicationsControllerProvider.notifier)
+                            .loadApplications(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry application check'),
                       )
                     : FilledButton.icon(
                         onPressed:

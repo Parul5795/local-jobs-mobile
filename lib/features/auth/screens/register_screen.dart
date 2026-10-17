@@ -7,6 +7,7 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/loading_overlay.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_role_selector.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -37,7 +38,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _register() {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authStateProvider.notifier).register(
+      ref
+          .read(authStateProvider.notifier)
+          .register(
             _fullNameController.text.trim(),
             _emailController.text.trim(),
             _phoneController.text.trim(),
@@ -55,7 +58,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next is AuthError) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.message), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+            content: Text(next.message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     });
@@ -63,9 +69,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     return LoadingOverlay(
       isLoading: isLoading,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Create Account'),
-        ),
+        appBar: AppBar(title: const Text('Create Account')),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -82,30 +86,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Text(
                     'Find your dream job or hire the best talent.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  // Role Selection
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment<String>(
-                        value: 'JobSeeker',
-                        label: Text('Job Seeker'),
-                        icon: Icon(Icons.person_search_outlined),
-                      ),
-                      ButtonSegment<String>(
-                        value: 'Employer',
-                        label: Text('Employer'),
-                        icon: Icon(Icons.business_outlined),
-                      ),
-                    ],
-                    selected: {_selectedRole},
-                    onSelectionChanged: (Set<String> newSelection) {
-                      setState(() {
-                        _selectedRole = newSelection.first;
-                      });
-                    },
+                  AuthRoleSelector(
+                    selectedRole: _selectedRole,
+                    onChanged: (role) => setState(() => _selectedRole = role),
                   ),
                   const SizedBox(height: 24),
                   AppTextField(
@@ -138,7 +125,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
                       onPressed: () {
                         setState(() {
@@ -154,16 +143,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _confirmPasswordController,
                     obscureText: _obscurePassword,
                     prefixIcon: const Icon(Icons.lock_outline),
-                    validator: (val) => Validators.validateConfirmPassword(val, _passwordController.text),
+                    validator: (val) => Validators.validateConfirmPassword(
+                      val,
+                      _passwordController.text,
+                    ),
                   ),
                   const SizedBox(height: 32),
-                  AppButton(
-                    text: 'Sign Up',
-                    onPressed: _register,
-                  ),
+                  AppButton(text: 'Sign Up', onPressed: _register),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       const Text("Already have an account?"),
                       TextButton(

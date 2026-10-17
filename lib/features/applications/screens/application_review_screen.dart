@@ -9,12 +9,44 @@ import '../providers/applications_provider.dart';
 
 class ApplicationReviewScreen extends ConsumerWidget {
   static const routeName = 'application-review';
-  final ApplicationDraft draft;
+  final ApplicationDraft? draft;
 
   const ApplicationReviewScreen({super.key, required this.draft});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final draft = this.draft;
+    if (draft == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Review application')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.description_outlined, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Application details unavailable',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Return to the job and start your application again.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => context.goNamed(RouteNames.jobs),
+                  child: const Text('Browse jobs'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     final state = ref.watch(applicationsControllerProvider);
     final job = draft.job;
     return Scaffold(

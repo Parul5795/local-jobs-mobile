@@ -24,7 +24,9 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    Future.microtask(() => ref.read(jobsControllerProvider.notifier).loadJobs());
+    Future.microtask(
+      () => ref.read(jobsControllerProvider.notifier).loadJobs(),
+    );
   }
 
   @override
@@ -37,13 +39,17 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(jobsControllerProvider);
     final filters = state.filters;
-    final categories = ['All', 'Engineering', 'Design', 'Marketing', 'Operations'];
+    final categories = [
+      'All',
+      'Engineering',
+      'Design',
+      'Marketing',
+      'Operations',
+    ];
     final cities = ['All', 'Berlin', 'Munich', 'Hamburg', 'Remote'];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Jobs'),
-      ),
+      appBar: AppBar(title: const Text('Jobs')),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () => ref.read(jobsControllerProvider.notifier).loadJobs(),
@@ -55,9 +61,15 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Find your next opportunity', style: Theme.of(context).textTheme.headlineSmall),
+                      Text(
+                        'Find your next opportunity',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                       const SizedBox(height: 8),
-                      Text('Search by role, company, or location.', style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        'Search by role, company, or location.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       const SizedBox(height: 16),
                       AppTextField(
                         label: 'Search jobs',
@@ -65,7 +77,9 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
                         controller: _searchController,
                         prefixIcon: const Icon(Icons.search),
                         onSubmitted: (value) async {
-                          await ref.read(jobsControllerProvider.notifier).applyFilters(query: value);
+                          await ref
+                              .read(jobsControllerProvider.notifier)
+                              .applyFilters(query: value);
                         },
                       ),
                       const SizedBox(height: 16),
@@ -74,7 +88,9 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
                         options: categories,
                         selectedValue: filters.category,
                         onSelected: (value) async {
-                          await ref.read(jobsControllerProvider.notifier).applyFilters(category: value);
+                          await ref
+                              .read(jobsControllerProvider.notifier)
+                              .applyFilters(category: value);
                         },
                       ),
                       const SizedBox(height: 12),
@@ -83,7 +99,9 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
                         options: cities,
                         selectedValue: filters.city,
                         onSelected: (value) async {
-                          await ref.read(jobsControllerProvider.notifier).applyFilters(city: value);
+                          await ref
+                              .read(jobsControllerProvider.notifier)
+                              .applyFilters(city: value);
                         },
                       ),
                     ],
@@ -100,6 +118,12 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
                     icon: Icons.error_outline,
                     title: 'Something went wrong',
                     message: state.error ?? 'Please try again.',
+                    action: FilledButton.icon(
+                      onPressed: () =>
+                          ref.read(jobsControllerProvider.notifier).loadJobs(),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Try again'),
+                    ),
                   ),
                 )
               else if (state.jobs.isEmpty)
@@ -114,21 +138,21 @@ class _JobListScreenState extends ConsumerState<JobListScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final job = state.jobs[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: JobCard(
-                            job: job,
-                            onTap: () {
-                              context.pushNamed(JobDetailsScreen.routeName, pathParameters: {'id': job.id});
-                            },
-                          ),
-                        );
-                      },
-                      childCount: state.jobs.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final job = state.jobs[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: JobCard(
+                          job: job,
+                          onTap: () {
+                            context.pushNamed(
+                              JobDetailsScreen.routeName,
+                              pathParameters: {'id': job.id},
+                            );
+                          },
+                        ),
+                      );
+                    }, childCount: state.jobs.length),
                   ),
                 ),
             ],

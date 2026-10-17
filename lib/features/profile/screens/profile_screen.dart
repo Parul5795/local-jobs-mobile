@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/app_button.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/profile_model.dart';
 import '../providers/profile_provider.dart';
 import '../../applications/screens/my_applications_screen.dart';
@@ -20,6 +21,10 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
+          TextButton(
+            onPressed: () => _confirmLogout(context, ref),
+            child: const Text('Log out'),
+          ),
           IconButton(
             tooltip: 'Settings',
             onPressed: () => context.pushNamed(SettingsScreen.routeName),
@@ -48,6 +53,28 @@ class ProfileScreen extends ConsumerWidget {
             : _ProfileContent(profile: user),
       ),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('You can sign back in at any time.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogout != true || !context.mounted) return;
+    await ref.read(authStateProvider.notifier).logout();
   }
 }
 

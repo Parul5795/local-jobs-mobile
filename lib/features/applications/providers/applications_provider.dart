@@ -30,6 +30,7 @@ class ApplicationsState extends Equatable {
   final ApplicationFilters filters;
   final bool isSubmitting;
   final String? submitError;
+  final bool isWithdrawing;
 
   const ApplicationsState({
     this.applications = const [],
@@ -39,6 +40,7 @@ class ApplicationsState extends Equatable {
     this.filters = const ApplicationFilters(),
     this.isSubmitting = false,
     this.submitError,
+    this.isWithdrawing = false,
   });
 
   ApplicationsState copyWith({
@@ -49,6 +51,7 @@ class ApplicationsState extends Equatable {
     ApplicationFilters? filters,
     bool? isSubmitting,
     String? submitError,
+    bool? isWithdrawing,
   }) {
     return ApplicationsState(
       applications: applications ?? this.applications,
@@ -58,6 +61,7 @@ class ApplicationsState extends Equatable {
       filters: filters ?? this.filters,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submitError: submitError,
+      isWithdrawing: isWithdrawing ?? this.isWithdrawing,
     );
   }
 
@@ -70,6 +74,7 @@ class ApplicationsState extends Equatable {
     filters,
     isSubmitting,
     submitError,
+    isWithdrawing,
   ];
 }
 
@@ -192,6 +197,28 @@ class ApplicationsController extends Notifier<ApplicationsState> {
   Future<void> clearFilters() async {
     state = state.copyWith(filters: const ApplicationFilters());
     await loadApplications();
+  }
+
+  Future<void> withdrawApplication(String applicationId) async {
+    if (state.isWithdrawing) return;
+    state = state.copyWith(isWithdrawing: true, error: null);
+    try {
+      await ref
+          .read(applicationsRepositoryProvider)
+          .withdrawApplication(applicationId);
+      state = state.copyWith(
+        applications: state.applications
+            .where((application) => application.id != applicationId)
+            .toList(growable: false),
+        allApplications: state.allApplications
+            .where((application) => application.id != applicationId)
+            .toList(growable: false),
+        isWithdrawing: false,
+      );
+    } catch (error) {
+      state = state.copyWith(isWithdrawing: false, error: error.toString());
+      rethrow;
+    }
   }
 
   List<Application> _sortApplications(

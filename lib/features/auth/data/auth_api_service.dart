@@ -1,15 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import '../models/auth_response.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
 import '../models/user_model.dart';
 
-final authApiServiceProvider = Provider<AuthApiService>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return AuthApiServiceImpl(apiClient);
-});
+final authApiServiceProvider = Provider<AuthApiService>(
+  (ref) => AuthApiServiceImpl(),
+);
 
 abstract class AuthApiService {
   Future<ApiResponse<AuthResponse>> login(LoginRequest request);
@@ -19,26 +17,30 @@ abstract class AuthApiService {
 }
 
 class AuthApiServiceImpl implements AuthApiService {
-  // ignore: unused_field
-  final ApiClient _apiClient;
-
-  AuthApiServiceImpl(this._apiClient);
+  AuthApiServiceImpl();
 
   @override
   Future<ApiResponse<AuthResponse>> login(LoginRequest request) async {
     // Stub implementation
     await Future.delayed(const Duration(seconds: 1));
-    if (request.email == 'test@test.com' && request.password == '123456') {
+    final role = request.role.toLowerCase().contains('employer')
+        ? 'Employer'
+        : 'JobSeeker';
+    final expectedEmail = role == 'Employer'
+        ? 'employer@test.com'
+        : 'jobseeker@test.com';
+    if (request.email.trim().toLowerCase() == expectedEmail &&
+        request.password == 'password') {
       return ApiResponse.success(
         AuthResponse(
-          accessToken: 'mock_access_token',
-          refreshToken: 'mock_refresh_token',
+          accessToken: '',
+          refreshToken: '',
           user: UserModel(
-            id: '1',
+            id: role == 'Employer' ? 'mock-employer' : 'mock-job-seeker',
             email: request.email,
-            fullName: 'Test User',
+            fullName: role == 'Employer' ? 'Demo Employer' : 'Demo Job Seeker',
             phone: '1234567890',
-            role: 'JobSeeker',
+            role: role,
             createdAt: DateTime.now(),
           ),
         ),
@@ -51,16 +53,19 @@ class AuthApiServiceImpl implements AuthApiService {
   Future<ApiResponse<AuthResponse>> register(RegisterRequest request) async {
     // Stub implementation
     await Future.delayed(const Duration(seconds: 1));
+    final role = request.role.toLowerCase().contains('employer')
+        ? 'Employer'
+        : 'JobSeeker';
     return ApiResponse.success(
       AuthResponse(
-        accessToken: 'mock_access_token',
-        refreshToken: 'mock_refresh_token',
+        accessToken: '',
+        refreshToken: '',
         user: UserModel(
           id: '2',
           email: request.email,
           fullName: request.fullName,
           phone: request.phone,
-          role: request.role,
+          role: role,
           createdAt: DateTime.now(),
         ),
       ),
@@ -80,9 +85,9 @@ class AuthApiServiceImpl implements AuthApiService {
     await Future.delayed(const Duration(seconds: 1));
     return ApiResponse.success(
       UserModel(
-        id: '1',
-        email: 'test@test.com',
-        fullName: 'Test User',
+        id: 'mock-job-seeker',
+        email: 'jobseeker@test.com',
+        fullName: 'Demo Job Seeker',
         phone: '1234567890',
         role: 'JobSeeker',
         createdAt: DateTime.now(),

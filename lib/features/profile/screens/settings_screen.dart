@@ -65,6 +65,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   );
 
   Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('You can sign back in at any time.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+    if (shouldLogout != true || !mounted) return;
     setState(() => _loggingOut = true);
     try {
       await ref.read(authStateProvider.notifier).logout();

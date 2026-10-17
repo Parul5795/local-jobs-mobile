@@ -21,6 +21,7 @@ abstract class ApplicationsApiService {
 class ApplicationsApiServiceImpl implements ApplicationsApiService {
   final Dio _dio;
   static final List<Application> _localApplications = [];
+  static final Set<String> _withdrawnApplicationIds = {};
 
   ApplicationsApiServiceImpl(this._dio);
 
@@ -30,7 +31,11 @@ class ApplicationsApiServiceImpl implements ApplicationsApiService {
 
     final _ = _dio.options.baseUrl;
     final applications = [
-      ..._mockApplications.map(Application.fromJson),
+      ..._mockApplications
+          .map(Application.fromJson)
+          .where(
+            (application) => !_withdrawnApplicationIds.contains(application.id),
+          ),
       ..._localApplications,
     ];
 
@@ -52,9 +57,11 @@ class ApplicationsApiServiceImpl implements ApplicationsApiService {
   Future<Application?> fetchApplicationById(String id) async {
     await Future.delayed(const Duration(milliseconds: 400));
     return [
-      ..._mockApplications.map(Application.fromJson),
-      ..._localApplications,
-    ].where((app) => app.id == id).firstOrNull;
+          ..._mockApplications.map(Application.fromJson),
+          ..._localApplications,
+        ]
+        .where((app) => app.id == id && !_withdrawnApplicationIds.contains(id))
+        .firstOrNull;
   }
 
   @override
@@ -81,7 +88,10 @@ class ApplicationsApiServiceImpl implements ApplicationsApiService {
   @override
   Future<void> withdrawApplication(String applicationId) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    // Mock implementation - in real app, would call API endpoint
+    _localApplications.removeWhere(
+      (application) => application.id == applicationId,
+    );
+    _withdrawnApplicationIds.add(applicationId);
   }
 
   static const List<Map<String, dynamic>> _mockApplications = [
