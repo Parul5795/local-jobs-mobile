@@ -21,6 +21,9 @@ class RouteNames {
   static const String notifications = 'notifications';
   static const String notificationDetails = 'notification-details';
   static const String savedJobs = 'saved-jobs';
+  static const String applicationForm = 'application-form';
+  static const String applicationReview = 'application-review';
+  static const String applicationSuccess = 'application-success';
 }
 
 class RoutePaths {
@@ -46,4 +49,7 @@ class RoutePaths {
   static const String notifications = '/notifications';
   static const String notificationDetails = '/notifications/:id';
   static const String savedJobs = '/saved-jobs';
+  static const String applicationForm = '/jobs/:id/apply';
+  static const String applicationReview = '/applications/review';
+  static const String applicationSuccess = '/applications/success/:id';
 }

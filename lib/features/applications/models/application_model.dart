@@ -10,6 +10,10 @@ class Application extends Equatable {
   final String appliedAt;
   final String? reviewedAt;
   final String? coverLetter;
+  final String? applicantName;
+  final String? applicantEmail;
+  final String? applicantPhone;
+  final String? resumeName;
 
   const Application({
     required this.id,
@@ -19,6 +23,10 @@ class Application extends Equatable {
     required this.appliedAt,
     this.reviewedAt,
     this.coverLetter,
+    this.applicantName,
+    this.applicantEmail,
+    this.applicantPhone,
+    this.resumeName,
   });
 
   factory Application.fromJson(Map<String, dynamic> json) {
@@ -30,6 +38,10 @@ class Application extends Equatable {
       appliedAt: json['appliedAt']?.toString() ?? '',
       reviewedAt: json['reviewedAt']?.toString(),
       coverLetter: json['coverLetter']?.toString(),
+      applicantName: json['applicantName']?.toString(),
+      applicantEmail: json['applicantEmail']?.toString(),
+      applicantPhone: json['applicantPhone']?.toString(),
+      resumeName: json['resumeName']?.toString(),
     );
   }
 
@@ -42,6 +54,10 @@ class Application extends Equatable {
       'appliedAt': appliedAt,
       'reviewedAt': reviewedAt,
       'coverLetter': coverLetter,
+      'applicantName': applicantName,
+      'applicantEmail': applicantEmail,
+      'applicantPhone': applicantPhone,
+      'resumeName': resumeName,
     };
   }
 
@@ -53,6 +69,10 @@ class Application extends Equatable {
     String? appliedAt,
     String? reviewedAt,
     String? coverLetter,
+    String? applicantName,
+    String? applicantEmail,
+    String? applicantPhone,
+    String? resumeName,
   }) {
     return Application(
       id: id ?? this.id,
@@ -62,19 +82,27 @@ class Application extends Equatable {
       appliedAt: appliedAt ?? this.appliedAt,
       reviewedAt: reviewedAt ?? this.reviewedAt,
       coverLetter: coverLetter ?? this.coverLetter,
+      applicantName: applicantName ?? this.applicantName,
+      applicantEmail: applicantEmail ?? this.applicantEmail,
+      applicantPhone: applicantPhone ?? this.applicantPhone,
+      resumeName: resumeName ?? this.resumeName,
     );
   }
 
   @override
   List<Object?> get props => [
-        id,
-        job,
-        userId,
-        status,
-        appliedAt,
-        reviewedAt,
-        coverLetter,
-      ];
+    id,
+    job,
+    userId,
+    status,
+    appliedAt,
+    reviewedAt,
+    coverLetter,
+    applicantName,
+    applicantEmail,
+    applicantPhone,
+    resumeName,
+  ];
 }
 
 ApplicationStatus _parseStatus(dynamic statusValue) {

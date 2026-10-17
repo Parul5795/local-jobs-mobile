@@ -23,6 +23,10 @@ import '../../features/employer/screens/applicant_detail_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/notifications/screens/notification_detail_screen.dart';
 import '../../features/jobs/screens/saved_jobs_screen.dart';
+import '../../features/applications/screens/application_form_screen.dart';
+import '../../features/applications/screens/application_review_screen.dart';
+import '../../features/applications/screens/application_success_screen.dart';
+import '../../features/applications/models/application_draft.dart';
 import 'route_names.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -89,6 +93,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           final jobId = state.pathParameters['id'] ?? '';
           return JobDetailsScreen(jobId: jobId);
         },
+      ),
+      GoRoute(
+        path: RoutePaths.applicationForm,
+        name: RouteNames.applicationForm,
+        builder: (context, state) =>
+            ApplicationFormScreen(jobId: state.pathParameters['id'] ?? ''),
+      ),
+      GoRoute(
+        path: RoutePaths.applicationReview,
+        name: RouteNames.applicationReview,
+        builder: (context, state) =>
+            ApplicationReviewScreen(draft: state.extra! as ApplicationDraft),
+      ),
+      GoRoute(
+        path: RoutePaths.applicationSuccess,
+        name: RouteNames.applicationSuccess,
+        builder: (context, state) => ApplicationSuccessScreen(
+          applicationId: state.pathParameters['id'] ?? '',
+        ),
       ),
       GoRoute(
         path: RoutePaths.myApplications,

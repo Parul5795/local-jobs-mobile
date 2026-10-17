@@ -12,6 +12,7 @@ abstract class ApplicationsRepository {
   Future<List<Application>> fetchApplications({String? statusFilter});
   Future<Application?> fetchApplicationById(String id);
   Future<void> applyForJob(String jobId);
+  Future<Application> createApplication(Application application);
   Future<void> withdrawApplication(String applicationId);
 }
 
@@ -39,4 +40,8 @@ class ApplicationsRepositoryImpl implements ApplicationsRepository {
   Future<void> withdrawApplication(String applicationId) {
     return _apiService.withdrawApplication(applicationId);
   }
+
+  @override
+  Future<Application> createApplication(Application application) =>
+      _apiService.createApplication(application);
 }

@@ -5,6 +5,8 @@ import '../../../app/router/route_names.dart';
 import '../models/job_model.dart';
 import '../providers/jobs_provider.dart';
 import '../providers/saved_jobs_provider.dart';
+import '../../applications/providers/applications_provider.dart';
+import '../../applications/screens/application_details_screen.dart';
 
 class JobDetailsScreen extends ConsumerWidget {
   static const String routeName = 'job-details';
@@ -17,7 +19,13 @@ class JobDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final jobAsync = ref.watch(jobDetailsProvider(jobId));
     final savedState = ref.watch(savedJobsProvider);
+    final applicationsState = ref.watch(applicationsControllerProvider);
     final job = jobAsync.asData?.value;
+    final existingApplication = job == null
+        ? null
+        : ref
+              .read(applicationsControllerProvider.notifier)
+              .applicationForJob(job.id);
 
     return Scaffold(
       appBar: AppBar(
@@ -145,6 +153,49 @@ class JobDetailsScreen extends ConsumerWidget {
         error: (error, _) =>
             const Center(child: Text('Failed to load job details')),
       ),
+      bottomNavigationBar: job == null
+          ? null
+          : SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: SizedBox(
+                height: 52,
+                child: existingApplication != null
+                    ? OutlinedButton.icon(
+                        onPressed: () => context.pushNamed(
+                          ApplicationDetailsScreen.routeName,
+                          pathParameters: {'id': existingApplication.id},
+                        ),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Already Applied · View application'),
+                      )
+                    : FilledButton.icon(
+                        onPressed:
+                            applicationsState.isLoading &&
+                                applicationsState.applications.isEmpty
+                            ? null
+                            : () => context.pushNamed(
+                                RouteNames.applicationForm,
+                                pathParameters: {'id': job.id},
+                              ),
+                        icon:
+                            applicationsState.isLoading &&
+                                applicationsState.applications.isEmpty
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.send_outlined),
+                        label: Text(
+                          applicationsState.isLoading &&
+                                  applicationsState.applications.isEmpty
+                              ? 'Checking applications…'
+                              : 'Apply now',
+                        ),
+                      ),
+              ),
+            ),
     );
   }
 }
