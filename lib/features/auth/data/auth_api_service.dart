@@ -29,7 +29,9 @@ class AuthApiServiceImpl implements AuthApiService {
     final expectedEmail = role == 'Employer'
         ? 'employer@test.com'
         : 'jobseeker@test.com';
-    if (request.email.trim().toLowerCase() == expectedEmail &&
+    final expectedId = role == 'Employer' ? 'employer' : 'jobseeker';
+    final loginId = request.email.trim().toLowerCase();
+    if ((loginId == expectedEmail || loginId == expectedId) &&
         request.password == 'password') {
       return ApiResponse.success(
         AuthResponse(
@@ -37,7 +39,7 @@ class AuthApiServiceImpl implements AuthApiService {
           refreshToken: '',
           user: UserModel(
             id: role == 'Employer' ? 'mock-employer' : 'mock-job-seeker',
-            email: request.email,
+            email: expectedEmail,
             fullName: role == 'Employer' ? 'Demo Employer' : 'Demo Job Seeker',
             phone: '1234567890',
             role: role,

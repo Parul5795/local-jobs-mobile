@@ -26,6 +26,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String _selectedRole = 'JobSeeker';
 
   @override
+  void initState() {
+    super.initState();
+    _emailController.text = 'jobseeker';
+    _passwordController.text = 'password';
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -87,42 +94,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onChanged: (role) => setState(() {
                         _selectedRole = role;
                         _emailController.text = role == 'Employer'
-                            ? 'employer@test.com'
-                            : 'jobseeker@test.com';
-                        _passwordController.clear();
+                            ? 'employer'
+                            : 'jobseeker';
+                        _passwordController.text = 'password';
                       }),
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Demo: ${_selectedRole == 'Employer' ? 'employer' : 'jobseeker'}@test.com / password',
+                      'Demo ID: ${_selectedRole == 'Employer' ? 'employer' : 'jobseeker'} · Password: password',
                       style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
                     AppTextField(
-                      label: 'Email',
+                      label: 'Email or ID',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      validator: Validators.validateEmail,
+                      validator: (value) {
+                        final id = _selectedRole == 'Employer'
+                            ? 'employer'
+                            : 'jobseeker';
+                        if (value?.trim().toLowerCase() == id) return null;
+                        return Validators.validateEmail(value);
+                      },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
                       label: 'Password',
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                      suffixIcon: TextButton(
+                        onPressed: () => setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        }),
+                        child: Text(_obscurePassword ? 'Show' : 'Hide'),
                       ),
                       validator: Validators.validatePassword,
                       onSubmitted: (_) => _login(),

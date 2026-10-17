@@ -34,7 +34,7 @@ void main() {
 
   testWidgets('Job Seeker login opens Job Seeker Home', (tester) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'jobseeker@test.com', employer: false);
+    await submitLogin(tester, email: 'jobseeker', employer: false);
 
     expect(find.text('LocalJobs'), findsOneWidget);
     expect(find.text('Employer Dashboard'), findsNothing);
@@ -42,7 +42,7 @@ void main() {
 
   testWidgets('Employer login opens Employer Dashboard', (tester) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'employer@test.com', employer: true);
+    await submitLogin(tester, email: 'employer', employer: true);
 
     expect(find.text('Employer Dashboard'), findsOneWidget);
   });
