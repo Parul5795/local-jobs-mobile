@@ -20,6 +20,9 @@ import '../../features/employer/screens/employer_job_detail_screen.dart';
 import '../../features/employer/screens/job_form_screen.dart';
 import '../../features/employer/screens/applicants_screen.dart';
 import '../../features/employer/screens/applicant_detail_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/notifications/screens/notification_detail_screen.dart';
+import '../../features/jobs/screens/saved_jobs_screen.dart';
 import 'route_names.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -154,6 +157,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ApplicantDetailScreen(
           applicantId: state.pathParameters['id'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: RoutePaths.notifications,
+        name: RouteNames.notifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.notificationDetails,
+        name: RouteNames.notificationDetails,
+        builder: (context, state) => NotificationDetailScreen(
+          notificationId: state.pathParameters['id'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: RoutePaths.savedJobs,
+        name: RouteNames.savedJobs,
+        builder: (context, state) => const SavedJobsScreen(),
       ),
     ],
   );

@@ -5,8 +5,18 @@ import '../models/job_model.dart';
 class JobCard extends StatelessWidget {
   final Job job;
   final VoidCallback? onTap;
+  final bool isSaved;
+  final bool isUpdatingSavedState;
+  final VoidCallback? onToggleSaved;
 
-  const JobCard({super.key, required this.job, this.onTap});
+  const JobCard({
+    super.key,
+    required this.job,
+    this.onTap,
+    this.isSaved = false,
+    this.isUpdatingSavedState = false,
+    this.onToggleSaved,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,31 +36,62 @@ class JobCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       job.title,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   if (job.isFeatured)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryContainer,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         'Featured',
-                        style: theme.textTheme.labelSmall?.copyWith(color: AppColors.onPrimaryContainer),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.onPrimaryContainer,
+                        ),
                       ),
                     ),
+                  if (onToggleSaved != null) ...[
+                    const SizedBox(width: 4),
+                    IconButton(
+                      tooltip: isSaved ? 'Remove from saved jobs' : 'Save job',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: isUpdatingSavedState ? null : onToggleSaved,
+                      icon: isUpdatingSavedState
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              isSaved ? Icons.bookmark : Icons.bookmark_border,
+                              color: isSaved ? AppColors.primary : null,
+                            ),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),
-              Text(job.company, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                job.company,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(height: 6),
               Row(
                 children: [
                   const Icon(Icons.location_on_outlined, size: 16),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(job.location, style: theme.textTheme.bodySmall)),
+                  Expanded(
+                    child: Text(job.location, style: theme.textTheme.bodySmall),
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -66,7 +107,15 @@ class JobCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: Text(job.salary, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700))),
+                  Expanded(
+                    child: Text(
+                      job.salary,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                   Text(job.postedAt, style: theme.textTheme.bodySmall),
                 ],
               ),

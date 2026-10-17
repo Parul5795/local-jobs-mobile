@@ -18,6 +18,9 @@ class RouteNames {
   static const String employerEditJob = 'employer-edit-job';
   static const String employerApplicants = 'employer-applicants';
   static const String employerApplicantDetails = 'employer-applicant-detail';
+  static const String notifications = 'notifications';
+  static const String notificationDetails = 'notification-details';
+  static const String savedJobs = 'saved-jobs';
 }
 
 class RoutePaths {
@@ -40,4 +43,7 @@ class RoutePaths {
   static const String employerEditJob = '/employer/jobs/:id/edit';
   static const String employerApplicants = '/employer/jobs/:jobId/applicants';
   static const String employerApplicantDetails = '/employer/applicants/:id';
+  static const String notifications = '/notifications';
+  static const String notificationDetails = '/notifications/:id';
+  static const String savedJobs = '/saved-jobs';
 }
