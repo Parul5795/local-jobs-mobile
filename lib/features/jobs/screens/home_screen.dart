@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'job_list_screen.dart';
+import '../../applications/screens/my_applications_screen.dart';
+import '../../profile/screens/profile_screen.dart';
+import '../../profile/screens/settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const String routeName = 'home';
@@ -17,6 +20,11 @@ class HomeScreen extends StatelessWidget {
             onPressed: () => context.pushNamed(JobListScreen.routeName),
             icon: const Icon(Icons.search),
           ),
+          IconButton(
+            tooltip: 'Profile',
+            onPressed: () => context.pushNamed(ProfileScreen.routeName),
+            icon: const Icon(Icons.account_circle_outlined),
+          ),
         ],
       ),
       body: SafeArea(
@@ -25,9 +33,15 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Welcome back', style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                'Welcome back',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
-              Text('Discover jobs that match your next move.', style: Theme.of(context).textTheme.bodyLarge),
+              Text(
+                'Discover jobs that match your next move.',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -37,14 +51,23 @@ class HomeScreen extends StatelessWidget {
                   label: const Text('Browse jobs'),
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    'Home screen ready for future dashboard content.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () =>
+                      context.pushNamed(MyApplicationsScreen.routeName),
+                  icon: const Icon(Icons.assignment_outlined),
+                  label: const Text('My applications'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => context.pushNamed(SettingsScreen.routeName),
+                  icon: const Icon(Icons.settings_outlined),
+                  label: const Text('Settings'),
                 ),
               ),
             ],

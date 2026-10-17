@@ -9,6 +9,11 @@ import '../../features/auth/screens/splash_screen.dart';
 import '../../features/jobs/screens/home_screen.dart';
 import '../../features/jobs/screens/job_details_screen.dart';
 import '../../features/jobs/screens/job_list_screen.dart';
+import '../../features/applications/screens/my_applications_screen.dart';
+import '../../features/applications/screens/application_details_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/edit_profile_screen.dart';
+import '../../features/profile/screens/settings_screen.dart';
 import 'route_names.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -18,7 +23,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: RoutePaths.splash,
     redirect: (context, state) {
       final isSplash = state.matchedLocation == RoutePaths.splash;
-      final isLoggingIn = state.matchedLocation == RoutePaths.login ||
+      final isLoggingIn =
+          state.matchedLocation == RoutePaths.login ||
           state.matchedLocation == RoutePaths.register ||
           state.matchedLocation == RoutePaths.forgotPassword;
 
@@ -74,6 +80,34 @@ final routerProvider = Provider<GoRouter>((ref) {
           final jobId = state.pathParameters['id'] ?? '';
           return JobDetailsScreen(jobId: jobId);
         },
+      ),
+      GoRoute(
+        path: RoutePaths.myApplications,
+        name: RouteNames.myApplications,
+        builder: (context, state) => const MyApplicationsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.applicationDetails,
+        name: RouteNames.applicationDetails,
+        builder: (context, state) {
+          final applicationId = state.pathParameters['id'] ?? '';
+          return ApplicationDetailsScreen(applicationId: applicationId);
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.profile,
+        name: RouteNames.profile,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.editProfile,
+        name: RouteNames.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.settings,
+        name: RouteNames.settings,
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
