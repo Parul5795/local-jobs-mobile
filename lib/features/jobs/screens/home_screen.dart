@@ -131,6 +131,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 14),
+              if (isEmployer) ...[
+                Text(
+                  'Your Posted Jobs',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                if (myJobs.isEmpty)
+                  _NearbyEmptyState(
+                    icon: Icons.work_outline,
+                    title: "You haven't posted any jobs yet.",
+                    message: 'Post a local job so nearby workers can find it.',
+                    actionLabel: 'Post a Job',
+                    onPressed: () =>
+                        context.pushNamed(RouteNames.localJobCreate),
+                  ),
+                for (final job in myJobs)
+                  LocalJobCard(
+                    job: job,
+                    onTap: () => context.pushNamed(
+                      RouteNames.localJobDetails,
+                      pathParameters: {'id': job.id},
+                    ),
+                  ),
+                const SizedBox(height: 12),
+              ],
               Row(
                 children: [
                   Expanded(
@@ -165,36 +190,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onWhatsApp: () =>
                         _contactPerson(context, person.id, 'WhatsApp'),
                   ),
-              if (isEmployer) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Your Posted Jobs',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                  ],
-                ),
-                if (myJobs.isEmpty)
-                  _NearbyEmptyState(
-                    icon: Icons.work_outline,
-                    title: "You haven't posted any jobs yet.",
-                    message: 'Post a local job so nearby workers can find it.',
-                    actionLabel: 'Post a Job',
-                    onPressed: () =>
-                        context.pushNamed(RouteNames.localJobCreate),
-                  ),
-                for (final job in myJobs)
-                  LocalJobCard(
-                    job: job,
-                    onTap: () => context.pushNamed(
-                      RouteNames.localJobDetails,
-                      pathParameters: {'id': job.id},
-                    ),
-                  ),
-              ],
               if (!isEmployer && jobs.isEmpty)
                 _NearbyEmptyState(
                   icon: Icons.work_outline,
