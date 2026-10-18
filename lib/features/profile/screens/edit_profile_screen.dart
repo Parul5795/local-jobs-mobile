@@ -20,6 +20,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _phone = TextEditingController();
   final _bio = TextEditingController();
   final _location = TextEditingController();
+  final _workCategory = TextEditingController();
+  final _experience = TextEditingController();
+  final _skills = TextEditingController();
+  final _interests = TextEditingController();
+  final _availability = TextEditingController();
   bool _initialized = false;
   bool _saving = false;
 
@@ -30,6 +35,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _phone.dispose();
     _bio.dispose();
     _location.dispose();
+    _workCategory.dispose();
+    _experience.dispose();
+    _skills.dispose();
+    _interests.dispose();
+    _availability.dispose();
     super.dispose();
   }
 
@@ -43,6 +53,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _phone.text = profile.phone;
       _bio.text = profile.bio;
       _location.text = profile.location;
+      _workCategory.text = profile.workCategory;
+      _experience.text = profile.experience;
+      _skills.text = profile.skills.join(', ');
+      _interests.text = profile.interests.join(', ');
+      _availability.text = profile.availability;
       _initialized = true;
     }
     return Scaffold(
@@ -79,8 +94,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     padding: const EdgeInsets.all(20),
                     children: [
                       Center(
-                        child: Stack(
-                          clipBehavior: Clip.none,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
                               radius: 42,
@@ -93,16 +108,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
-                            Positioned(
-                              right: -4,
-                              bottom: -4,
-                              child: CircleAvatar(
-                                radius: 16,
-                                child: Icon(
-                                  Icons.camera_alt_outlined,
-                                  size: 17,
-                                ),
-                              ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Profile photo can be added later',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
                         ),
@@ -137,10 +146,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         controller: _location,
                         prefixIcon: const Icon(Icons.location_on_outlined),
                       ),
+                      if (!profile.isEmployer) ...[
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          label: 'Main type of work',
+                          controller: _workCategory,
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          label: 'Experience (or Fresher)',
+                          controller: _experience,
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          label: 'Skills (separate with commas)',
+                          controller: _skills,
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          label: 'Interested in (separate with commas)',
+                          controller: _interests,
+                        ),
+                        const SizedBox(height: 16),
+                        AppTextField(
+                          label: 'Availability',
+                          controller: _availability,
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       AppTextField(
                         label: profile.isEmployer
-                            ? 'About your organization'
+                            ? 'About you or your business'
                             : 'About you',
                         controller: _bio,
                         prefixIcon: const Icon(Icons.notes_outlined),
@@ -186,6 +222,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               phone: _phone.text.trim(),
               bio: _bio.text.trim(),
               location: _location.text.trim(),
+              workCategory: _workCategory.text.trim(),
+              experience: _experience.text.trim(),
+              skills: _parseList(_skills.text),
+              interests: _parseList(_interests.text),
+              availability: _availability.text.trim(),
             ),
           );
     } catch (error) {
@@ -204,4 +245,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       Navigator.of(context).pop();
     }
   }
+
+  List<String> _parseList(String value) => value
+      .split(',')
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toList();
 }

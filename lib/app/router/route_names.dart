@@ -24,6 +24,13 @@ class RouteNames {
   static const String applicationForm = 'application-form';
   static const String applicationReview = 'application-review';
   static const String applicationSuccess = 'application-success';
+  static const String localSearch = 'local-search';
+  static const String localPerson = 'local-person';
+  static const String localAds = 'local-ads';
+  static const String localAdCreate = 'local-ad-create';
+  static const String localJobCreate = 'local-job-create';
+  static const String localJobDetails = 'local-job-details';
+  static const String classifiedDetails = 'classified-details';
 }
 
 class RoutePaths {
@@ -52,4 +59,11 @@ class RoutePaths {
   static const String applicationForm = '/jobs/:id/apply';
   static const String applicationReview = '/applications/review';
   static const String applicationSuccess = '/applications/success/:id';
+  static const String localSearch = '/search';
+  static const String localPerson = '/people/:id';
+  static const String localAds = '/ads';
+  static const String localAdCreate = '/ads/create';
+  static const String localJobCreate = '/local-jobs/create';
+  static const String localJobDetails = '/local-jobs/:id';
+  static const String classifiedDetails = '/ads/:id';
 }

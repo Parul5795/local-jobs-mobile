@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/local_navigation_bar.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/profile_model.dart';
 import '../providers/profile_provider.dart';
-import '../../applications/screens/my_applications_screen.dart';
 import 'edit_profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -32,6 +32,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const LocalNavigationBar(selectedIndex: 3),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ProfileMessage(
@@ -118,7 +119,7 @@ class _ProfileContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      profile.isEmployer ? 'Employer' : 'Job seeker',
+                      profile.isEmployer ? 'Local employer' : 'Local worker',
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: theme.colorScheme.primary,
                       ),
@@ -129,6 +130,21 @@ class _ProfileContent extends StatelessWidget {
                       Text(
                         profile.companyName!,
                         style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                    if (!profile.isEmployer) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        profile.workCategory,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      Text(profile.experience),
+                      if (profile.availability.isNotEmpty)
+                        Text('Available: ${profile.availability}'),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${profile.contactCount} people contacted this profile',
+                        style: theme.textTheme.bodySmall,
                       ),
                     ],
                     const SizedBox(height: 20),
@@ -178,16 +194,26 @@ class _ProfileContent extends StatelessWidget {
                 ],
               ),
             ),
-            if (!profile.isEmployer) ...[
+            if (!profile.isEmployer && profile.skills.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.assignment_outlined),
-                  title: const Text('My applications'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () =>
-                      context.pushNamed(MyApplicationsScreen.routeName),
-                ),
+              Text('Skills', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final skill in profile.skills) Chip(label: Text(skill)),
+                ],
+              ),
+            ],
+            if (!profile.isEmployer && profile.interests.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text('Interested in', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final item in profile.interests) Chip(label: Text(item)),
+                ],
               ),
             ],
           ],

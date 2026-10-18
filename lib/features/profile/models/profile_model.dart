@@ -12,6 +12,12 @@ class ProfileModel extends Equatable {
   final String location;
   final String? companyName;
   final String? profileImageUrl;
+  final String workCategory;
+  final String experience;
+  final List<String> skills;
+  final List<String> interests;
+  final String availability;
+  final int contactCount;
   final DateTime createdAt;
 
   const ProfileModel({
@@ -24,6 +30,12 @@ class ProfileModel extends Equatable {
     this.location = '',
     this.companyName,
     this.profileImageUrl,
+    this.workCategory = '',
+    this.experience = '',
+    this.skills = const [],
+    this.interests = const [],
+    this.availability = '',
+    this.contactCount = 0,
     required this.createdAt,
   });
 
@@ -33,6 +45,14 @@ class ProfileModel extends Equatable {
     fullName: user.fullName,
     phone: user.phone,
     role: user.role,
+    workCategory: user.role.toLowerCase().contains('employer')
+        ? ''
+        : 'Local work',
+    experience: user.role.toLowerCase().contains('employer') ? '' : 'Fresher',
+    availability: user.role.toLowerCase().contains('employer')
+        ? ''
+        : 'Available now',
+    contactCount: user.role.toLowerCase().contains('employer') ? 0 : 24,
     createdAt: user.createdAt,
   );
 
@@ -43,6 +63,11 @@ class ProfileModel extends Equatable {
     String? location,
     String? companyName,
     String? profileImageUrl,
+    String? workCategory,
+    String? experience,
+    List<String>? skills,
+    List<String>? interests,
+    String? availability,
   }) => ProfileModel(
     id: id,
     email: email,
@@ -53,6 +78,12 @@ class ProfileModel extends Equatable {
     location: location ?? this.location,
     companyName: companyName ?? this.companyName,
     profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+    workCategory: workCategory ?? this.workCategory,
+    experience: experience ?? this.experience,
+    skills: skills ?? this.skills,
+    interests: interests ?? this.interests,
+    availability: availability ?? this.availability,
+    contactCount: contactCount,
     createdAt: createdAt,
   );
 
@@ -69,6 +100,12 @@ class ProfileModel extends Equatable {
     location,
     companyName,
     profileImageUrl,
+    workCategory,
+    experience,
+    skills,
+    interests,
+    availability,
+    contactCount,
     createdAt,
   ];
 }

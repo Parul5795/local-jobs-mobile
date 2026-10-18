@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../auth/providers/auth_provider.dart';
 import '../../../shared/widgets/app_button.dart';
-import 'profile_screen.dart';
+import 'edit_profile_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   static const routeName = 'settings';
@@ -30,18 +30,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.person_outline),
-                    title: const Text('Profile'),
+                    leading: const Icon(Icons.edit_outlined),
+                    title: const Text('Edit profile'),
+                    subtitle: const Text('Update your local profile'),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.pushNamed(ProfileScreen.routeName),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  const ListTile(
-                    leading: Icon(Icons.notifications_outlined),
-                    title: Text('Notifications'),
-                    subtitle: Text(
-                      'Notification preferences will be available soon',
-                    ),
+                    onTap: () => context.pushNamed(EditProfileScreen.routeName),
                   ),
                   const Divider(height: 1, indent: 56),
                   const ListTile(

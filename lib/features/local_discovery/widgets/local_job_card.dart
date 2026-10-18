@@ -1,0 +1,38 @@
+import 'package:flutter/material.dart';
+
+import '../models/local_job.dart';
+
+class LocalJobCard extends StatelessWidget {
+  final LocalJob job;
+  final VoidCallback onTap;
+  const LocalJobCard({super.key, required this.job, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(job.title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 6),
+          Text('📍 ${job.location} · ${job.distanceKm.toStringAsFixed(1)} km'),
+          const SizedBox(height: 6),
+          Text(job.pay, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 4),
+          Text('${job.workType}  ·  ${job.availability}'),
+          const SizedBox(height: 4),
+          Text(
+            'Posted ${job.postedAt}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(onPressed: onTap, child: const Text('View')),
+          ),
+        ],
+      ),
+    ),
+  );
+}

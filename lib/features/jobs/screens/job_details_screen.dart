@@ -1,270 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../app/router/route_names.dart';
-import '../models/job_model.dart';
-import '../providers/jobs_provider.dart';
-import '../providers/saved_jobs_provider.dart';
-import '../../applications/providers/applications_provider.dart';
-import '../../applications/screens/application_details_screen.dart';
+
+import '../../../shared/widgets/local_navigation_bar.dart';
+import '../../local_discovery/providers/local_jobs_provider.dart';
 
 class JobDetailsScreen extends ConsumerWidget {
-  static const String routeName = 'job-details';
-
+  static const String routeName = 'local-job-details';
   final String jobId;
-
   const JobDetailsScreen({super.key, required this.jobId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final jobAsync = ref.watch(jobDetailsProvider(jobId));
-    final savedState = ref.watch(savedJobsProvider);
-    final applicationsState = ref.watch(applicationsControllerProvider);
-    final job = jobAsync.asData?.value;
-    final existingApplication = job == null
-        ? null
-        : ref
-              .read(applicationsControllerProvider.notifier)
-              .applicationForJob(job.id);
-
+    final job = ref
+        .watch(localJobsProvider)
+        .where((item) => item.id == jobId)
+        .firstOrNull;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Job Details'),
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        actions: [
-          if (job != null)
-            IconButton(
-              tooltip: savedState.error != null && savedState.jobs.isEmpty
-                  ? 'Retry saved jobs'
-                  : savedState.contains(job.id)
-                  ? 'Remove from saved jobs'
-                  : 'Save job',
-              onPressed: savedState.isLoading && savedState.jobs.isEmpty
-                  ? null
-                  : savedState.error != null && savedState.jobs.isEmpty
-                  ? () => ref.read(savedJobsProvider.notifier).load()
-                  : savedState.updatingJobIds.contains(job.id)
-                  ? null
-                  : () => _toggleSavedJob(
-                      context,
-                      ref,
-                      job,
-                      savedState.contains(job.id),
-                    ),
-              icon: savedState.isLoading && savedState.jobs.isEmpty
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      savedState.error != null && savedState.jobs.isEmpty
-                          ? Icons.refresh
-                          : savedState.contains(job.id)
-                          ? Icons.bookmark
-                          : Icons.bookmark_border,
-                    ),
-            ),
-        ],
-      ),
-      body: jobAsync.when(
-        data: (job) {
-          if (job == null) {
-            return const Center(child: Text('Job not found'));
-          }
-
-          final theme = Theme.of(context);
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(job.title, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 8),
-                Text(
-                  job.company,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
+      appBar: AppBar(title: const Text('Work details')),
+      bottomNavigationBar: const LocalNavigationBar(selectedIndex: 1),
+      body: job == null
+          ? const Center(child: Text('This work post is no longer available.'))
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 18),
-                    const SizedBox(width: 4),
-                    Text(job.location),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _DetailChip(label: job.category),
-                    _DetailChip(label: job.employmentType),
-                    _DetailChip(label: job.experienceLevel),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text('About this role', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(job.description),
-                const SizedBox(height: 16),
-                Text('Salary', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Text(job.salary),
-                const SizedBox(height: 16),
-                Text('Required skills', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                ...job.skills.map(
-                  (skill) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
+                    Text(
+                      job.title,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${job.location} · ${job.distanceKm.toStringAsFixed(1)} km',
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      job.pay,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      '${job.workType} · ${job.availability} · ${job.experience}',
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Description',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(job.description),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Requirements',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      job.requirements.isEmpty
+                          ? 'No additional requirements listed.'
+                          : job.requirements,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Posted by',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(job.employer),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 12,
                       children: [
-                        const Icon(Icons.check_circle_outline, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(skill)),
+                        FilledButton.icon(
+                          onPressed: () => _contact(context, 'Call'),
+                          icon: const Icon(Icons.call_outlined),
+                          label: const Text('Call'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _contact(context, 'WhatsApp'),
+                          icon: const Icon(Icons.chat_outlined),
+                          label: const Text('WhatsApp'),
+                        ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text('Requirements', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 8),
-                ...job.requirements.map(
-                  (requirement) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.arrow_right),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(requirement)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.cloud_off_outlined, size: 48),
-                const SizedBox(height: 12),
-                Text(
-                  'Could not load job details',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => ref.invalidate(jobDetailsProvider(jobId)),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try again'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: job == null
-          ? null
-          : SafeArea(
-              minimum: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-              child: SizedBox(
-                height: 52,
-                child: existingApplication != null
-                    ? OutlinedButton.icon(
-                        onPressed: () => context.pushNamed(
-                          ApplicationDetailsScreen.routeName,
-                          pathParameters: {'id': existingApplication.id},
-                        ),
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('Already Applied · View application'),
-                      )
-                    : applicationsState.error != null &&
-                          applicationsState.allApplications.isEmpty
-                    ? FilledButton.icon(
-                        onPressed: () => ref
-                            .read(applicationsControllerProvider.notifier)
-                            .loadApplications(),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Retry application check'),
-                      )
-                    : FilledButton.icon(
-                        onPressed:
-                            applicationsState.isLoading &&
-                                applicationsState.applications.isEmpty
-                            ? null
-                            : () => context.pushNamed(
-                                RouteNames.applicationForm,
-                                pathParameters: {'id': job.id},
-                              ),
-                        icon:
-                            applicationsState.isLoading &&
-                                applicationsState.applications.isEmpty
-                            ? const SizedBox.square(
-                                dimension: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.send_outlined),
-                        label: Text(
-                          applicationsState.isLoading &&
-                                  applicationsState.applications.isEmpty
-                              ? 'Checking applications…'
-                              : 'Apply now',
-                        ),
-                      ),
               ),
             ),
     );
   }
-}
 
-Future<void> _toggleSavedJob(
-  BuildContext context,
-  WidgetRef ref,
-  Job job,
-  bool isSaved,
-) async {
-  try {
-    await ref.read(savedJobsProvider.notifier).toggle(job);
-    if (!context.mounted) return;
+  void _contact(BuildContext context, String method) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(isSaved ? 'Removed from saved jobs.' : 'Job saved.'),
-        action: isSaved
-            ? null
-            : SnackBarAction(
-                label: 'View saved jobs',
-                onPressed: () => context.pushNamed(RouteNames.savedJobs),
-              ),
-      ),
+      SnackBar(content: Text('$method contact is a demo action.')),
     );
-  } catch (error) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not update saved jobs: $error')),
-      );
-    }
   }
 }
 
-class _DetailChip extends StatelessWidget {
-  final String label;
-
-  const _DetailChip({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(label: Text(label));
-  }
+extension _FirstOrNull<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
 }
