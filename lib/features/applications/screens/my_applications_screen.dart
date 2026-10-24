@@ -14,32 +14,31 @@ class MyApplicationsScreen extends ConsumerStatefulWidget {
   const MyApplicationsScreen({super.key});
 
   @override
-  ConsumerState<MyApplicationsScreen> createState() =>
-      _MyApplicationsScreenState();
+  ConsumerState<MyApplicationsScreen> createState() => _MyApplicationsScreenState();
 }
 
 class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () =>
-          ref.read(applicationsControllerProvider.notifier).loadApplications(),
-    );
+    Future.microtask(() => ref.read(applicationsControllerProvider.notifier).loadApplications());
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(applicationsControllerProvider);
-    final statuses = ['All', ...ApplicationStatus.values.map((s) => s.label)];
+    final statuses = [
+      'All',
+      ...ApplicationStatus.values.map((s) => s.label),
+    ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Applications')),
+      appBar: AppBar(
+        title: const Text('My Applications'),
+      ),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () => ref
-              .read(applicationsControllerProvider.notifier)
-              .loadApplications(),
+          onRefresh: () => ref.read(applicationsControllerProvider.notifier).loadApplications(),
           child: CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
@@ -66,21 +65,15 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                           separatorBuilder: (_, _) => const SizedBox(width: 8),
                           itemBuilder: (context, index) {
                             final status = statuses[index];
-                            final isSelected =
-                                state.filters.statusFilter == null &&
-                                    status == 'All' ||
+                            final isSelected = state.filters.statusFilter == null && status == 'All' ||
                                 state.filters.statusFilter == status;
                             return ChoiceChip(
                               label: Text(status),
                               selected: isSelected,
                               onSelected: (_) {
-                                final filterValue = status == 'All'
-                                    ? null
-                                    : status;
+                                final filterValue = status == 'All' ? null : status;
                                 ref
-                                    .read(
-                                      applicationsControllerProvider.notifier,
-                                    )
+                                    .read(applicationsControllerProvider.notifier)
                                     .filterByStatus(filterValue);
                               },
                             );
@@ -101,13 +94,6 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                     icon: Icons.error_outline,
                     title: 'Something went wrong',
                     message: state.error ?? 'Please try again.',
-                    action: FilledButton.icon(
-                      onPressed: () => ref
-                          .read(applicationsControllerProvider.notifier)
-                          .loadApplications(),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Try again'),
-                    ),
                   ),
                 )
               else if (state.applications.isEmpty)
@@ -115,29 +101,31 @@ class _MyApplicationsScreenState extends ConsumerState<MyApplicationsScreen> {
                   child: EmptyState(
                     icon: Icons.assignment_outlined,
                     title: 'No applications yet',
-                    message:
-                        'Start exploring jobs and apply to positions that interest you.',
+                    message: 'Start exploring jobs and apply to positions that interest you.',
                   ),
                 )
               else
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final application = state.applications[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ApplicationCard(
-                          application: application,
-                          onTap: () {
-                            context.pushNamed(
-                              ApplicationDetailsScreen.routeName,
-                              pathParameters: {'id': application.id},
-                            );
-                          },
-                        ),
-                      );
-                    }, childCount: state.applications.length),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final application = state.applications[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ApplicationCard(
+                            application: application,
+                            onTap: () {
+                              context.pushNamed(
+                                ApplicationDetailsScreen.routeName,
+                                pathParameters: {'id': application.id},
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      childCount: state.applications.length,
+                    ),
                   ),
                 ),
             ],

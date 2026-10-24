@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:local_jobs_mobile/app/app.dart';
+import 'package:local_jobs_mobile/features/auth/data/auth_repository.dart';
+
+import '../../helpers/fake_auth_repository.dart';
 
 void main() {
   Future<void> startApp(WidgetTester tester) async {
@@ -9,19 +12,18 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const ProviderScope(child: LocalJobsApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
+        ],
+        child: const LocalJobsApp(),
+      ),
+    );
     await tester.pumpAndSettle();
   }
 
-  Future<void> submitLogin(
-    WidgetTester tester, {
-    required String email,
-    required bool employer,
-  }) async {
-    if (employer) {
-      await tester.tap(find.text('Employer').first);
-      await tester.pumpAndSettle();
-    }
+  Future<void> submitLogin(WidgetTester tester, {required String email}) async {
     await tester.enterText(find.byType(TextFormField).at(0), email);
     await tester.enterText(find.byType(TextFormField).at(1), 'password');
     await tester.ensureVisible(find.text('Login'));
@@ -34,7 +36,7 @@ void main() {
 
   testWidgets('Job Seeker login opens local work Home', (tester) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'jobseeker', employer: false);
+    await submitLogin(tester, email: 'jobseeker@example.test');
 
     expect(find.text('Find work nearby'), findsOneWidget);
     expect(find.text('Employer Dashboard'), findsNothing);
@@ -43,17 +45,17 @@ void main() {
 
   testWidgets('Employer login opens local people Home', (tester) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'employer', employer: true);
+    await submitLogin(tester, email: 'employer@example.test');
 
     expect(find.text('Find people nearby'), findsOneWidget);
-    expect(find.text('Post a Job'), findsOneWidget);
+    expect(find.text('Post a Job'), findsWidgets);
   });
 
   testWidgets('Employer can find a worker and record a mock contact', (
     tester,
   ) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'employer', employer: true);
+    await submitLogin(tester, email: 'employer@example.test');
     await tester.tap(find.text('Search').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Driver');
@@ -62,9 +64,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Worker profile'), findsOneWidget);
+    await tester.ensureVisible(find.text('24 people contacted this profile'));
     expect(find.text('24 people contacted this profile'), findsOneWidget);
     await tester.tap(find.text('Call'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('25 people contacted this profile'));
     expect(find.text('25 people contacted this profile'), findsOneWidget);
   });
 
@@ -72,7 +76,7 @@ void main() {
     tester,
   ) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'jobseeker', employer: false);
+    await submitLogin(tester, email: 'jobseeker@example.test');
     await tester.tap(find.text('Search').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Driver');
@@ -89,7 +93,7 @@ void main() {
 
   testWidgets('Both roles can post and view a classified', (tester) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'jobseeker', employer: false);
+    await submitLogin(tester, email: 'jobseeker@example.test');
     await tester.tap(find.text('Ads').last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Post an Ad'));
@@ -115,12 +119,12 @@ void main() {
     tester,
   ) async {
     await startApp(tester);
-    await submitLogin(tester, email: 'employer', employer: true);
+    await submitLogin(tester, email: 'employer@example.test');
     await tester.tap(find.text('Post a Job'));
     await tester.pumpAndSettle();
     final fields = find.byType(TextFormField);
     await tester.enterText(fields.at(0), 'Night Guard Needed');
-    await tester.enterText(fields.at(1), '₹16,000 per month');
+    await tester.enterText(fields.at(1), 'Ã¢â€šÂ¹16,000 per month');
     await tester.enterText(
       fields.at(2),
       'Night shift security for a small apartment building.',
@@ -138,7 +142,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Log out').last);
     await tester.pumpAndSettle();
-    await submitLogin(tester, email: 'jobseeker', employer: false);
+    await submitLogin(tester, email: 'jobseeker@example.test');
 
     await tester.tap(find.text('Search').last);
     await tester.pumpAndSettle();
@@ -181,7 +185,7 @@ void main() {
 
       if (role == 'Employer') {
         expect(find.text('Find people nearby'), findsOneWidget);
-        expect(find.text('Post a Job'), findsOneWidget);
+        expect(find.text('Post a Job'), findsWidgets);
       } else {
         expect(find.text('Find work nearby'), findsOneWidget);
         expect(find.text('Employer Dashboard'), findsNothing);

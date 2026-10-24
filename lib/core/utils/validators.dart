@@ -5,8 +5,11 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
+    if (value.trim().length > 150) {
+      return 'Email must be 150 characters or fewer';
+    }
     final regex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!regex.hasMatch(value)) {
+    if (!regex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
     }
     return null;
@@ -16,8 +19,11 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Password is required';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters long';
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (value.length > 128) {
+      return 'Password must be 128 characters or fewer';
     }
     return null;
   }
@@ -36,6 +42,9 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Name is required';
     }
+    if (value.trim().length > 100) {
+      return 'Name must be 100 characters or fewer';
+    }
     return null;
   }
 
@@ -43,9 +52,8 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
     }
-    // Basic phone validation, can be adjusted based on requirements
-    if (value.length < 10) {
-       return 'Enter a valid phone number';
+    if (value.trim().length < 10 || value.trim().length > 20) {
+      return 'Enter a valid phone number';
     }
     return null;
   }

@@ -1,99 +1,59 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/constants/api_constants.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exceptions.dart';
 import '../../../core/network/api_response.dart';
 import '../models/auth_response.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
-import '../models/user_model.dart';
 
 final authApiServiceProvider = Provider<AuthApiService>(
-  (ref) => AuthApiServiceImpl(),
+  (ref) => AuthApiServiceImpl(ref.watch(apiClientProvider)),
 );
 
 abstract class AuthApiService {
-  Future<ApiResponse<AuthResponse>> login(LoginRequest request);
-  Future<ApiResponse<AuthResponse>> register(RegisterRequest request);
+  Future<AuthResponse> login(LoginRequest request);
+  Future<AuthResponse> register(RegisterRequest request);
   Future<ApiResponse<void>> forgotPassword(String email);
-  Future<ApiResponse<UserModel>> me();
 }
 
 class AuthApiServiceImpl implements AuthApiService {
-  AuthApiServiceImpl();
+  final ApiClient _apiClient;
+
+  const AuthApiServiceImpl(this._apiClient);
 
   @override
-  Future<ApiResponse<AuthResponse>> login(LoginRequest request) async {
-    // Stub implementation
-    await Future.delayed(const Duration(seconds: 1));
-    final role = request.role.toLowerCase().contains('employer')
-        ? 'Employer'
-        : 'JobSeeker';
-    final expectedEmail = role == 'Employer'
-        ? 'employer@test.com'
-        : 'jobseeker@test.com';
-    final expectedId = role == 'Employer' ? 'employer' : 'jobseeker';
-    final loginId = request.email.trim().toLowerCase();
-    if ((loginId == expectedEmail || loginId == expectedId) &&
-        request.password == 'password') {
-      return ApiResponse.success(
-        AuthResponse(
-          accessToken: '',
-          refreshToken: '',
-          user: UserModel(
-            id: role == 'Employer' ? 'mock-employer' : 'mock-job-seeker',
-            email: expectedEmail,
-            fullName: role == 'Employer' ? 'Demo Employer' : 'Demo Job Seeker',
-            phone: '1234567890',
-            role: role,
-            createdAt: DateTime.now(),
-          ),
-        ),
-      );
+  Future<AuthResponse> login(LoginRequest request) =>
+      _post(ApiConstants.login, request.toJson());
+
+  @override
+  Future<AuthResponse> register(RegisterRequest request) =>
+      _post(ApiConstants.register, request.toJson());
+
+  Future<AuthResponse> _post(String path, Map<String, dynamic> body) async {
+    try {
+      final response = await _apiClient.dio.post<dynamic>(path, data: body);
+      final data = response.data;
+      if (data is! Map) {
+        throw const FormatException(
+          'The server returned an invalid authentication response.',
+        );
+      }
+      return AuthResponse.fromJson(Map<String, dynamic>.from(data));
+    } on DioException catch (error) {
+      if (error.error is ApiException) {
+        throw error.error! as ApiException;
+      }
+      rethrow;
     }
-    return ApiResponse.error('Invalid email or password');
-  }
-
-  @override
-  Future<ApiResponse<AuthResponse>> register(RegisterRequest request) async {
-    // Stub implementation
-    await Future.delayed(const Duration(seconds: 1));
-    final role = request.role.toLowerCase().contains('employer')
-        ? 'Employer'
-        : 'JobSeeker';
-    return ApiResponse.success(
-      AuthResponse(
-        accessToken: '',
-        refreshToken: '',
-        user: UserModel(
-          id: '2',
-          email: request.email,
-          fullName: request.fullName,
-          phone: request.phone,
-          role: role,
-          createdAt: DateTime.now(),
-        ),
-      ),
-    );
   }
 
   @override
   Future<ApiResponse<void>> forgotPassword(String email) async {
-    // Stub implementation
-    await Future.delayed(const Duration(seconds: 1));
-    return ApiResponse.success(null, 'Password reset instructions sent.');
-  }
-
-  @override
-  Future<ApiResponse<UserModel>> me() async {
-    // Stub implementation
-    await Future.delayed(const Duration(seconds: 1));
-    return ApiResponse.success(
-      UserModel(
-        id: 'mock-job-seeker',
-        email: 'jobseeker@test.com',
-        fullName: 'Demo Job Seeker',
-        phone: '1234567890',
-        role: 'JobSeeker',
-        createdAt: DateTime.now(),
-      ),
-    );
+    // The current backend contract does not include password recovery.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    return ApiResponse.success(null, 'Password recovery is not available yet.');
   }
 }

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../app/router/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/loading_overlay.dart';
-import '../../../app/router/route_names.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/auth_role_selector.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -23,14 +23,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  String _selectedRole = 'JobSeeker';
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController.text = 'jobseeker';
-    _passwordController.text = 'password';
-  }
 
   @override
   void dispose() {
@@ -43,11 +35,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       ref
           .read(authStateProvider.notifier)
-          .login(
-            _emailController.text.trim(),
-            _passwordController.text,
-            _selectedRole,
-          );
+          .login(_emailController.text.trim(), _passwordController.text);
     }
   }
 
@@ -56,7 +44,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authStateProvider);
     final isLoading = authState is AuthLoading;
 
-    // Listen for errors to show snackbar
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next is AuthError) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,34 +76,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    AuthRoleSelector(
-                      selectedRole: _selectedRole,
-                      onChanged: (role) => setState(() {
-                        _selectedRole = role;
-                        _emailController.text = role == 'Employer'
-                            ? 'employer'
-                            : 'jobseeker';
-                        _passwordController.text = 'password';
-                      }),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Demo ID: ${_selectedRole == 'Employer' ? 'employer' : 'jobseeker'} · Password: password',
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
                     AppTextField(
-                      label: 'Email or ID',
+                      label: 'Email',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        final id = _selectedRole == 'Employer'
-                            ? 'employer'
-                            : 'jobseeker';
-                        if (value?.trim().toLowerCase() == id) return null;
-                        return Validators.validateEmail(value);
-                      },
+                      validator: Validators.validateEmail,
                     ),
                     const SizedBox(height: 16),
                     AppTextField(

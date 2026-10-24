@@ -1,17 +1,15 @@
-# local_jobs_mobile
+# LocalJobs Mobile
 
-A new Flutter project.
+Flutter frontend for LocalJobs.
 
-## Getting Started
+## Configure the backend URL
 
-This project is a starting point for a Flutter application.
+The API base URL is supplied with the API_BASE_URL Dart define. The default is http://localhost:5000.
 
-A few resources to get you started if this is your first Flutter project:
+    flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5000
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+For an Android emulator, use the host bridge address instead:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+    flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
+
+For a physical device, set API_BASE_URL to the development machine's reachable LAN address. Chrome development also requires the backend to allow the Flutter web origin through CORS.

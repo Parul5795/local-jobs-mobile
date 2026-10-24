@@ -1,30 +1,28 @@
 import 'package:equatable/equatable.dart';
 
 class RegisterRequest extends Equatable {
-  final String fullName;
+  final String name;
   final String email;
-  final String phone;
+  final String phoneNumber;
   final String password;
-  final String role; // 'JobSeeker' or 'Employer'
+  final String accountType;
 
   const RegisterRequest({
-    required this.fullName,
+    required this.name,
     required this.email,
-    required this.phone,
+    required this.phoneNumber,
     required this.password,
-    required this.role,
+    required this.accountType,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'fullName': fullName,
-      'email': email,
-      'phone': phone,
-      'password': password,
-      'role': role,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'email': email,
+    'phoneNumber': phoneNumber,
+    'password': password,
+    'accountType': accountType,
+  };
 
   @override
-  List<Object?> get props => [fullName, email, phone, password, role];
+  List<Object?> get props => [name, email, phoneNumber, password, accountType];
 }

@@ -18,26 +18,41 @@ class UserModel extends Equatable {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final id = json['userId'] ?? json['id'];
+    final name = json['name'] ?? json['fullName'];
+    final accountType = json['accountType'] ?? json['role'];
+    final email = json['email'];
+
+    if (id is! String ||
+        name is! String ||
+        email is! String ||
+        accountType is! String ||
+        !const {'JobSeeker', 'Employer'}.contains(accountType)) {
+      throw const FormatException('The authentication response is invalid.');
+    }
+
+    final rawCreatedAt = json['createdAt'];
+    final createdAt = rawCreatedAt is String
+        ? DateTime.tryParse(rawCreatedAt)
+        : null;
+    final phone = json['phoneNumber'] ?? json['phone'];
+
     return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      fullName: json['fullName'] as String,
-      phone: json['phone'] as String,
-      role: json['role'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      id: id,
+      email: email,
+      fullName: name,
+      phone: phone is String ? phone : '',
+      role: accountType,
+      createdAt: createdAt ?? DateTime.now().toUtc(),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'fullName': fullName,
-      'phone': phone,
-      'role': role,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'userId': id,
+    'name': fullName,
+    'email': email,
+    'accountType': role,
+  };
 
   @override
   List<Object?> get props => [id, email, fullName, phone, role, createdAt];

@@ -15,12 +15,7 @@ class ApplicationDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final applicationAsync = ref.watch(
-      applicationDetailsProvider(applicationId),
-    );
-    final isWithdrawing = ref
-        .watch(applicationsControllerProvider)
-        .isWithdrawing;
+    final applicationAsync = ref.watch(applicationDetailsProvider(applicationId));
 
     return Scaffold(
       appBar: AppBar(
@@ -47,12 +42,7 @@ class ApplicationDetailsScreen extends ConsumerWidget {
                 // Job Header
                 Text(job.title, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 8),
-                Text(
-                  job.company,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text(job.company, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -73,10 +63,7 @@ class ApplicationDetailsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Application Status',
-                        style: theme.textTheme.titleMedium,
-                      ),
+                      Text('Application Status', style: theme.textTheme.titleMedium),
                       const SizedBox(height: 12),
                       ApplicationStatusBadge(
                         status: application.status,
@@ -132,51 +119,41 @@ class ApplicationDetailsScreen extends ConsumerWidget {
                 // Salary
                 Text('Salary', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Text(
-                  job.salary,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text(job.salary, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 20),
 
                 // Required Skills
                 Text('Required skills', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
-                ...job.skills.map(
-                  (skill) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.check_circle_outline, size: 18),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(skill)),
-                      ],
-                    ),
-                  ),
-                ),
+                ...job.skills.map((skill) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle_outline, size: 18),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(skill)),
+                        ],
+                      ),
+                    )),
                 const SizedBox(height: 20),
 
                 // Requirements
                 Text('Requirements', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
-                ...job.requirements.map(
-                  (requirement) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.arrow_right),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(requirement)),
-                      ],
-                    ),
-                  ),
-                ),
+                ...job.requirements.map((requirement) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.arrow_right),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(requirement)),
+                        ],
+                      ),
+                    )),
                 const SizedBox(height: 20),
 
                 // Cover Letter (if exists)
-                if (application.coverLetter != null &&
-                    application.coverLetter!.isNotEmpty) ...[
+                if (application.coverLetter != null && application.coverLetter!.isNotEmpty) ...[
                   Text('Your cover letter', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Container(
@@ -189,25 +166,6 @@ class ApplicationDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
                 ],
-                if (application.applicantName != null ||
-                    application.resumeName != null) ...[
-                  Text('Submitted with', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  if (application.applicantName != null)
-                    Text('Applicant: ${application.applicantName}'),
-                  if (application.applicantEmail != null)
-                    Text('Email: ${application.applicantEmail}'),
-                  if (application.applicantPhone != null)
-                    Text('Phone: ${application.applicantPhone}'),
-                  if (application.resumeName != null)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.picture_as_pdf_outlined),
-                      title: Text(application.resumeName!),
-                      subtitle: const Text('Selected resume'),
-                    ),
-                  const SizedBox(height: 20),
-                ],
 
                 // Action Button
                 if (application.status != ApplicationStatus.hired &&
@@ -215,18 +173,14 @@ class ApplicationDetailsScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: isWithdrawing
-                          ? null
-                          : () => _confirmWithdraw(context, ref, applicationId),
-                      icon: isWithdrawing
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.close),
-                      label: Text(
-                        isWithdrawing ? 'Withdrawing…' : 'Withdraw Application',
-                      ),
+                      onPressed: () {
+                        // TODO: Implement withdraw application
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Application withdrawn')),
+                        );
+                      },
+                      icon: const Icon(Icons.close),
+                      label: const Text('Withdraw Application'),
                     ),
                   ),
                 const SizedBox(height: 24),
@@ -235,8 +189,7 @@ class ApplicationDetailsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            const Center(child: Text('Failed to load application details')),
+        error: (error, _) => const Center(child: Text('Failed to load application details')),
       ),
     );
   }
@@ -247,52 +200,6 @@ class ApplicationDetailsScreen extends ConsumerWidget {
       return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     } catch (_) {
       return dateString;
-    }
-  }
-}
-
-Future<void> _confirmWithdraw(
-  BuildContext context,
-  WidgetRef ref,
-  String applicationId,
-) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Withdraw application?'),
-      content: const Text(
-        'This application will be removed from your application list.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Keep application'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Withdraw'),
-        ),
-      ],
-    ),
-  );
-  if (confirmed != true || !context.mounted) return;
-  try {
-    await ref
-        .read(applicationsControllerProvider.notifier)
-        .withdrawApplication(applicationId);
-    ref.invalidate(applicationDetailsProvider(applicationId));
-    if (context.mounted) {
-      final messenger = ScaffoldMessenger.of(context);
-      context.pop();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Application withdrawn.')),
-      );
-    }
-  } catch (error) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not withdraw application: $error')),
-      );
     }
   }
 }
@@ -330,12 +237,7 @@ class _InfoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );

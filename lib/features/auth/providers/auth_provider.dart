@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/network/api_exceptions.dart';
 import '../../../core/services/logger_service.dart';
 import '../data/auth_repository.dart';
 import '../models/auth_state.dart';
@@ -12,58 +14,51 @@ final authStateProvider = NotifierProvider<AuthNotifier, AuthState>(
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
-    // Run the check after the build phase completes
-    Future.microtask(() => checkAuthStatus());
+    Future.microtask(checkAuthStatus);
     return const AuthInitial();
   }
 
   Future<void> checkAuthStatus() async {
     state = const AuthLoading();
     try {
-      final repository = ref.read(authRepositoryProvider);
-      final hasSession = await repository.hasSession();
-      if (hasSession) {
-        final user = await repository.getCurrentUser();
-        state = Authenticated(user);
-      } else {
-        state = const Unauthenticated();
-      }
-    } catch (e, stackTrace) {
+      final user = await ref.read(authRepositoryProvider).restoreSession();
+      state = user == null ? const Unauthenticated() : Authenticated(user);
+    } catch (error, stackTrace) {
       LoggerService.e(
-        'Check auth status failed',
-        error: e,
+        'Session restoration failed',
+        error: error.runtimeType,
         stackTrace: stackTrace,
       );
-      await ref.read(authRepositoryProvider).logout();
-      state = const Unauthenticated();
+      try {
+        await ref.read(authRepositoryProvider).logout();
+      } finally {
+        state = const Unauthenticated();
+      }
     }
   }
 
-  Future<void> login(String email, String password, String role) async {
+  Future<void> login(String email, String password) async {
     state = const AuthLoading();
     try {
       final user = await ref
           .read(authRepositoryProvider)
-          .login(LoginRequest(email: email, password: password, role: role));
+          .login(LoginRequest(email: email, password: password));
       state = Authenticated(user);
-    } catch (e, stackTrace) {
-      LoggerService.e('Login failed', error: e, stackTrace: stackTrace);
-      state = AuthError(e.toString().replaceAll('ApiException: ', ''));
-      // Reset state to unauthenticated after showing error to allow retry without staying in error state forever
-      Future.delayed(const Duration(seconds: 3), () {
-        if (state is AuthError) {
-          state = const Unauthenticated();
-        }
-      });
+    } catch (error, stackTrace) {
+      LoggerService.e(
+        'Login failed (${error.runtimeType})',
+        stackTrace: stackTrace,
+      );
+      state = AuthError(_userMessage(error));
     }
   }
 
   Future<void> register(
-    String fullName,
+    String name,
     String email,
-    String phone,
+    String phoneNumber,
     String password,
-    String role,
+    String accountType,
   ) async {
     state = const AuthLoading();
     try {
@@ -71,36 +66,48 @@ class AuthNotifier extends Notifier<AuthState> {
           .read(authRepositoryProvider)
           .register(
             RegisterRequest(
-              fullName: fullName,
+              name: name,
               email: email,
-              phone: phone,
+              phoneNumber: phoneNumber,
               password: password,
-              role: role,
+              accountType: accountType,
             ),
           );
       state = Authenticated(user);
-    } catch (e, stackTrace) {
-      LoggerService.e('Registration failed', error: e, stackTrace: stackTrace);
-      state = AuthError(e.toString().replaceAll('ApiException: ', ''));
-      Future.delayed(const Duration(seconds: 3), () {
-        if (state is AuthError) {
-          state = const Unauthenticated();
-        }
-      });
+    } catch (error, stackTrace) {
+      LoggerService.e(
+        'Registration failed (${error.runtimeType})',
+        stackTrace: stackTrace,
+      );
+      state = AuthError(_userMessage(error));
     }
   }
 
-  Future<void> forgotPassword(String email) async {
+  Future<void> forgotPassword(String email) =>
+      ref.read(authRepositoryProvider).forgotPassword(email);
+
+  Future<void> handleUnauthorized() async {
     try {
-      await ref.read(authRepositoryProvider).forgotPassword(email);
-    } catch (e) {
-      rethrow;
+      await ref.read(authRepositoryProvider).logout();
+    } finally {
+      state = const Unauthenticated();
     }
   }
 
   Future<void> logout() async {
     state = const AuthLoading();
-    await ref.read(authRepositoryProvider).logout();
-    state = const Unauthenticated();
+    try {
+      await ref.read(authRepositoryProvider).logout();
+    } finally {
+      state = const Unauthenticated();
+    }
+  }
+
+  String _userMessage(Object error) {
+    if (error is ApiException) return error.message;
+    if (error is FormatException) {
+      return 'The server returned an unexpected response. Please try again.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 }
