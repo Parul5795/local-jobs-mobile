@@ -16,6 +16,7 @@ import '../../features/local_ads/screens/classified_details_screen.dart';
 import '../../features/local_ads/screens/create_local_ad_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
+import '../../features/profile/screens/edit_account_screen.dart';
 import '../../features/employer/screens/job_form_screen.dart';
 import '../../features/employer/screens/my_jobs_screen.dart';
 import '../../features/localjobs/models/localjobs_models.dart';
@@ -131,6 +132,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.editProfile,
         name: RouteNames.editProfile,
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.editAccount,
+        name: RouteNames.editAccount,
+        builder: (context, state) => const EditAccountScreen(),
       ),
       GoRoute(
         path: RoutePaths.localPerson,

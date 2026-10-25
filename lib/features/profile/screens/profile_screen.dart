@@ -4,10 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/local_navigation_bar.dart';
+import '../../auth/models/auth_state.dart';
+import '../../auth/models/user_model.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/profile_model.dart';
 import '../providers/profile_provider.dart';
+import '../providers/user_account_provider.dart';
 import 'edit_profile_screen.dart';
+import 'edit_account_screen.dart';
 import 'settings_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -17,6 +21,11 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
+    final auth = ref.watch(authStateProvider);
+    final accountState = ref.watch(userAccountProvider);
+    final account =
+        accountState.asData?.value ??
+        (auth is Authenticated ? auth.user : null);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
@@ -46,12 +55,24 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
         data: (user) => user == null
-            ? const _ProfileMessage(
-                icon: Icons.person_off_outlined,
-                title: 'Profile unavailable',
-                detail: 'Sign in to view your profile.',
+            ? _FirstTimeWorkerProfile(
+                account: account,
+                accountHasError: accountState.hasError,
+                onCreate: () => context.pushNamed(EditProfileScreen.routeName),
+                onEditAccount: () =>
+                    context.pushNamed(EditAccountScreen.routeName),
+                onRetryAccount: () =>
+                    ref.read(userAccountProvider.notifier).load(),
               )
-            : _ProfileContent(profile: user),
+            : _ProfileContent(
+                profile: user,
+                account: account,
+                accountHasError: accountState.hasError,
+                onEditAccount: () =>
+                    context.pushNamed(EditAccountScreen.routeName),
+                onRetryAccount: () =>
+                    ref.read(userAccountProvider.notifier).load(),
+              ),
       ),
     );
   }
@@ -79,9 +100,67 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+class _FirstTimeWorkerProfile extends StatelessWidget {
+  final UserModel? account;
+  final bool accountHasError;
+  final VoidCallback onCreate;
+  final VoidCallback onEditAccount;
+  final VoidCallback onRetryAccount;
+  const _FirstTimeWorkerProfile({
+    required this.account,
+    required this.accountHasError,
+    required this.onCreate,
+    required this.onEditAccount,
+    required this.onRetryAccount,
+  });
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 640),
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(20),
+        children: [
+          _ProfileMessage(
+            icon: Icons.person_add_alt_1_outlined,
+            title: 'Create your worker profile',
+            detail:
+                'Add your work category, city, experience, skills and availability so local employers can find you.',
+            action: AppButton(
+              text: 'Create worker profile',
+              fullWidth: false,
+              onPressed: onCreate,
+            ),
+          ),
+          if (account != null) ...[
+            const SizedBox(height: 16),
+            _AccountDetailsCard(
+              account: account!,
+              hasError: accountHasError,
+              onEdit: onEditAccount,
+              onRetry: onRetryAccount,
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+}
+
 class _ProfileContent extends StatelessWidget {
   final ProfileModel profile;
-  const _ProfileContent({required this.profile});
+  final UserModel? account;
+  final bool accountHasError;
+  final VoidCallback onEditAccount;
+  final VoidCallback onRetryAccount;
+  const _ProfileContent({
+    required this.profile,
+    required this.account,
+    required this.accountHasError,
+    required this.onEditAccount,
+    required this.onRetryAccount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +192,7 @@ class _ProfileContent extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      profile.fullName,
+                      account?.fullName ?? profile.fullName,
                       style: theme.textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -160,41 +239,64 @@ class _ProfileContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Card(
-              child: Column(
-                children: [
-                  _InfoTile(
-                    icon: Icons.email_outlined,
-                    label: 'Email',
-                    value: profile.email,
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _InfoTile(
-                    icon: Icons.phone_outlined,
-                    label: 'Phone',
-                    value: profile.phone.isEmpty
-                        ? 'Not provided'
-                        : profile.phone,
-                  ),
-                  if (profile.location.isNotEmpty) ...[
+            if (account != null)
+              _AccountDetailsCard(
+                account: account!,
+                hasError: accountHasError,
+                onEdit: onEditAccount,
+                onRetry: onRetryAccount,
+              )
+            else
+              Card(
+                child: Column(
+                  children: [
+                    _InfoTile(
+                      icon: Icons.email_outlined,
+                      label: 'Email',
+                      value: profile.email,
+                    ),
                     const Divider(height: 1, indent: 56),
+                    _InfoTile(
+                      icon: Icons.phone_outlined,
+                      label: 'Phone',
+                      value: profile.phone.isEmpty
+                          ? 'Not provided'
+                          : profile.phone,
+                    ),
+                  ],
+                ),
+              ),
+            if (profile.location.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: Column(
+                  children: [
                     _InfoTile(
                       icon: Icons.location_on_outlined,
                       label: 'Location',
                       value: profile.location,
                     ),
+                    if (profile.bio.isNotEmpty) ...[
+                      const Divider(height: 1, indent: 56),
+                      _InfoTile(
+                        icon: Icons.notes_outlined,
+                        label: 'About',
+                        value: profile.bio,
+                      ),
+                    ],
                   ],
-                  if (profile.bio.isNotEmpty) ...[
-                    const Divider(height: 1, indent: 56),
-                    _InfoTile(
-                      icon: Icons.notes_outlined,
-                      label: 'About',
-                      value: profile.bio,
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
+            ] else if (profile.bio.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: _InfoTile(
+                  icon: Icons.notes_outlined,
+                  label: 'About',
+                  value: profile.bio,
+                ),
+              ),
+            ],
             if (!profile.isEmployer && profile.skills.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text('Skills', style: theme.textTheme.titleMedium),
@@ -222,6 +324,60 @@ class _ProfileContent extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AccountDetailsCard extends StatelessWidget {
+  final UserModel account;
+  final bool hasError;
+  final VoidCallback onEdit;
+  final VoidCallback onRetry;
+  const _AccountDetailsCard({
+    required this.account,
+    required this.hasError,
+    required this.onEdit,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Column(
+      children: [
+        _InfoTile(
+          icon: Icons.person_outline,
+          label: 'Name',
+          value: account.fullName,
+        ),
+        const Divider(height: 1, indent: 56),
+        _InfoTile(
+          icon: Icons.email_outlined,
+          label: 'Email',
+          value: account.email,
+        ),
+        const Divider(height: 1, indent: 56),
+        _InfoTile(
+          icon: Icons.phone_outlined,
+          label: 'Phone',
+          value: account.phone.isEmpty ? 'Not provided' : account.phone,
+        ),
+        if (hasError)
+          TextButton(
+            onPressed: onRetry,
+            child: const Text('Could not refresh account details. Retry'),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Edit account details'),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _InfoTile extends StatelessWidget {

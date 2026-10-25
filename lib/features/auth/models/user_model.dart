@@ -51,6 +51,7 @@ class UserModel extends Equatable {
     'userId': id,
     'name': fullName,
     'email': email,
+    'phoneNumber': phone,
     'accountType': role,
   };
 

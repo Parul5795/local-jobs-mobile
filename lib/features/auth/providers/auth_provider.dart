@@ -6,6 +6,7 @@ import '../data/auth_repository.dart';
 import '../models/auth_state.dart';
 import '../models/login_request.dart';
 import '../models/register_request.dart';
+import '../models/user_model.dart';
 
 final authStateProvider = NotifierProvider<AuthNotifier, AuthState>(
   AuthNotifier.new,
@@ -101,6 +102,13 @@ class AuthNotifier extends Notifier<AuthState> {
     } finally {
       state = const Unauthenticated();
     }
+  }
+
+  Future<void> updateAuthenticatedUser(UserModel user) async {
+    final current = state;
+    if (current is! Authenticated || current.user.id != user.id) return;
+    await ref.read(authRepositoryProvider).updateCachedUser(user);
+    state = Authenticated(user);
   }
 
   String _userMessage(Object error) {

@@ -71,6 +71,9 @@ class LocalJobsApiService {
       return WorkerProfile.fromJson(
         _map(await _get('/api/worker-profiles/me')),
       );
+    } on ApiException catch (error) {
+      if (error.statusCode == 404) return null;
+      rethrow;
     } on DioException catch (error) {
       if (error.response?.statusCode == 404) return null;
       _rethrow(error);
@@ -140,7 +143,9 @@ class LocalJobsApiService {
     ClassifiedAd.fromJson,
   );
   Future<ClassifiedAd> createAd(AdWriteRequest request) async =>
-      ClassifiedAd.fromJson(_map(await _post('/api/ads', request.toJson())));
+      ClassifiedAd.fromJson(
+        _map(await _post('/api/ads/new', request.toJson())),
+      );
   Future<ClassifiedAd> updateAd(String id, AdWriteRequest request) async =>
       ClassifiedAd.fromJson(_map(await _put('/api/ads/$id', request.toJson())));
   Future<void> deactivateAd(String id) async {

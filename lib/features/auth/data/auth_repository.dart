@@ -22,6 +22,7 @@ abstract class AuthRepository {
   Future<UserModel> register(RegisterRequest request);
   Future<void> forgotPassword(String email);
   Future<UserModel?> restoreSession();
+  Future<void> updateCachedUser(UserModel user);
   Future<void> logout();
 }
 
@@ -94,6 +95,15 @@ class AuthRepositoryImpl implements AuthRepository {
       await logout();
       return null;
     }
+  }
+
+  @override
+  Future<void> updateCachedUser(UserModel user) async {
+    await _secureStorage.writeValue(
+      key: 'auth_user',
+      value: jsonEncode(user.toJson()),
+    );
+    _currentUser = user;
   }
 
   bool _tokenHasValidExpiry(String token) {

@@ -8,6 +8,7 @@ import 'package:local_jobs_mobile/features/auth/data/auth_repository.dart';
 import 'package:local_jobs_mobile/features/auth/models/auth_response.dart';
 import 'package:local_jobs_mobile/features/auth/models/login_request.dart';
 import 'package:local_jobs_mobile/features/auth/models/register_request.dart';
+import 'package:local_jobs_mobile/features/auth/models/user_model.dart';
 
 void main() {
   test('login request matches the backend contract exactly', () {
@@ -82,6 +83,16 @@ void main() {
       expect(await storage.getAccessToken(), token);
       expect(storage.userJson, isNot(contains('safe-password')));
 
+      final updatedUser = UserModel(
+        id: user.id,
+        email: 'updated@example.test',
+        fullName: 'Updated Employer',
+        phone: '5551234567',
+        role: user.role,
+        createdAt: user.createdAt,
+      );
+      await repository.updateCachedUser(updatedUser);
+
       final restartedRepository = AuthRepositoryImpl(
         _FakeAuthApiService(response),
         storage,
@@ -90,6 +101,9 @@ void main() {
 
       expect(restoredUser?.id, 'employer-id');
       expect(restoredUser?.role, 'Employer');
+      expect(restoredUser?.fullName, 'Updated Employer');
+      expect(restoredUser?.email, 'updated@example.test');
+      expect(restoredUser?.phone, '5551234567');
     },
   );
 
@@ -162,6 +176,11 @@ class _MemorySecureStorage extends SecureStorageService {
 
   @override
   Future<String?> getStoredUser() async => userJson;
+
+  @override
+  Future<void> writeValue({required String key, required String value}) async {
+    if (key == 'auth_user') userJson = value;
+  }
 
   @override
   Future<void> clearSession() async {

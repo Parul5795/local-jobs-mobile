@@ -27,10 +27,10 @@ class ProfileNotifier extends AsyncNotifier<ProfileModel?> {
   }
 
   Future<void> save(ProfileModel profile) async {
-    final updated = await ref
-        .read(profileRepositoryProvider)
-        .updateProfile(profile);
-    state = AsyncData(updated);
+    await ref.read(profileRepositoryProvider).updateProfile(profile);
+    // Re-fetch after PUT so first-time creation follows the same read path as
+    // later profile visits and the UI displays the persisted backend response.
+    await load();
   }
 
   Future<void> logout() => ref.read(authStateProvider.notifier).logout();

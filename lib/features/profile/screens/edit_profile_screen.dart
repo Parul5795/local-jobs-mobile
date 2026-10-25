@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/models/auth_state.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../localjobs/models/localjobs_models.dart';
 import '../../localjobs/providers/localjobs_providers.dart';
+import '../models/profile_model.dart';
 import '../providers/profile_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -43,7 +46,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ref.watch(categoriesProvider).asData?.value ?? const <LookupItem>[];
     final cities =
         ref.watch(citiesProvider).asData?.value ?? const <CityItem>[];
-    final profile = profileState.asData?.value;
+    final savedProfile = profileState.asData?.value;
+    final profileDoesNotExist =
+        profileState.asData != null && savedProfile == null;
+    final auth = ref.watch(authStateProvider);
+    final profile =
+        savedProfile ??
+        (profileDoesNotExist &&
+                auth is Authenticated &&
+                auth.user.role.toLowerCase() == 'jobseeker'
+            ? ProfileModel.fromUser(auth.user)
+            : null);
     if (profile != null && !_initialized) {
       _categoryId = profile.categoryId;
       _cityId = profile.cityId;
@@ -219,7 +232,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
-    final current = ref.read(profileProvider).asData?.value;
+    final profileState = ref.read(profileProvider);
+    final savedProfile = profileState.asData?.value;
+    final auth = ref.read(authStateProvider);
+    final current =
+        savedProfile ??
+        (profileState.asData != null &&
+                savedProfile == null &&
+                auth is Authenticated &&
+                auth.user.role.toLowerCase() == 'jobseeker'
+            ? ProfileModel.fromUser(auth.user)
+            : null);
     if (current == null || _categoryId == null || _cityId == null) return;
     setState(() => _saving = true);
     try {

@@ -25,9 +25,10 @@ class ProfileApiServiceImpl implements ProfileApiService {
       return ProfileModel.fromUser(user);
     }
     final profile = await _repository.getMyWorkerProfile();
-    return profile == null
-        ? ProfileModel.fromUser(user)
-        : ProfileModel.fromWorker(user, profile);
+    // A null response means GET /api/worker-profiles/me returned the expected
+    // 404 because this JobSeeker has not created a worker profile yet.
+    // Exceptions remain errors and are handled by AsyncValue in ProfileNotifier.
+    return profile == null ? null : ProfileModel.fromWorker(user, profile);
   }
 
   @override

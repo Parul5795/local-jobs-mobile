@@ -18,6 +18,7 @@ class RouteNames {
   static const String employerCreateJob = 'employer-create-job';
   static const String employerEditJob = 'employer-edit-job';
   static const String editProfile = 'edit-profile';
+  static const String editAccount = 'edit-account';
   // Legacy screens remain compiled for compatibility, but these paths are not
   // registered in the redesigned LocalJobs router.
   static const String applicationReview = 'application-review';
@@ -50,4 +51,5 @@ class RoutePaths {
   static const String employerCreateJob = '/jobs/new';
   static const String employerEditJob = '/jobs/:id/edit';
   static const String editProfile = '/profile/edit';
+  static const String editAccount = '/profile/account/edit';
 }
