@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/applications_repository.dart';
 import '../models/application_filters.dart';
 import '../models/application_model.dart';
+import '../../jobs/models/job_model.dart';
 
 final applicationsControllerProvider = NotifierProvider<ApplicationsController, ApplicationsState>(
   ApplicationsController.new,
@@ -19,6 +20,8 @@ class ApplicationsState extends Equatable {
   final bool isLoading;
   final String? error;
   final ApplicationFilters filters;
+  bool get isSubmitting => false;
+  String? get submitError => null;
 
   const ApplicationsState({
     this.applications = const [],
@@ -50,6 +53,12 @@ class ApplicationsController extends Notifier<ApplicationsState> {
   ApplicationsState build() {
     return const ApplicationsState();
   }
+
+  // Legacy-only compile compatibility. This flow is intentionally not routed
+  // from the redesigned LocalJobs product and has no backend API integration.
+  Application? applicationForJob(String jobId) => null;
+
+  Future<Application> submitApplication({required Job job, required String fullName, required String email, required String phone, required String resumeName, required String coverLetter, required String additionalInformation}) => Future.error(UnsupportedError('Applications are not part of LocalJobs.'));
 
   Future<void> loadApplications() async {
     state = state.copyWith(isLoading: true, error: null);

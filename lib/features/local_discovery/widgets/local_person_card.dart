@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../models/local_person.dart';
 
 class LocalPersonCard extends StatelessWidget {
   final LocalPerson person;
-  final VoidCallback onTap;
-  final VoidCallback onCall;
-  final VoidCallback onWhatsApp;
-
+  final VoidCallback onTap, onCall, onWhatsApp;
   const LocalPersonCard({
     super.key,
     required this.person,
@@ -15,7 +11,6 @@ class LocalPersonCard extends StatelessWidget {
     required this.onCall,
     required this.onWhatsApp,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -33,12 +28,17 @@ class LocalPersonCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 25,
                     backgroundColor: theme.colorScheme.primaryContainer,
-                    child: Text(
-                      person.name.isEmpty ? '?' : person.name[0],
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
+                    backgroundImage: person.photoUrl == null
+                        ? null
+                        : NetworkImage(person.photoUrl!),
+                    child: person.photoUrl == null
+                        ? Text(
+                            person.name.isEmpty ? '?' : person.name[0],
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -62,18 +62,27 @@ class LocalPersonCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '${person.location} · ${person.distanceKm.toStringAsFixed(1)} km · ${person.experience}',
+              [
+                person.location,
+                if (person.distanceKm != null)
+                  '${person.distanceKm!.toStringAsFixed(1)} km',
+                person.experience,
+              ].where((v) => v.isNotEmpty).join(' · '),
             ),
-            const SizedBox(height: 4),
-            Text(
-              person.availability,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.tertiary,
-                fontWeight: FontWeight.w600,
+            if (person.availability.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                person.availability,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.tertiary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text([...person.skills, ...person.interests].join('  ·  ')),
+            ],
+            if (person.skills.isNotEmpty || person.interests.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text([...person.skills, ...person.interests].join('  ·  ')),
+            ],
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,

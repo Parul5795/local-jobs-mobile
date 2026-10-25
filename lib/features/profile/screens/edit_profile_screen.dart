@@ -1,203 +1,213 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../shared/widgets/app_button.dart';
-import '../../../shared/widgets/app_text_field.dart';
+import '../../localjobs/models/localjobs_models.dart';
+import '../../localjobs/providers/localjobs_providers.dart';
 import '../providers/profile_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   static const routeName = 'edit-profile';
   const EditProfileScreen({super.key});
-
   @override
   ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController();
-  final _email = TextEditingController();
-  final _phone = TextEditingController();
-  final _bio = TextEditingController();
-  final _location = TextEditingController();
-  final _workCategory = TextEditingController();
-  final _experience = TextEditingController();
-  final _skills = TextEditingController();
-  final _interests = TextEditingController();
-  final _availability = TextEditingController();
-  bool _initialized = false;
-  bool _saving = false;
-
+  final _form = GlobalKey<FormState>();
+  final _area = TextEditingController(),
+      _years = TextEditingController(),
+      _details = TextEditingController(),
+      _skills = TextEditingController(),
+      _interests = TextEditingController(),
+      _availability = TextEditingController(),
+      _about = TextEditingController(),
+      _image = TextEditingController();
+  int? _categoryId, _cityId;
+  bool _fresher = true, _saving = false, _initialized = false;
   @override
   void dispose() {
-    _name.dispose();
-    _email.dispose();
-    _phone.dispose();
-    _bio.dispose();
-    _location.dispose();
-    _workCategory.dispose();
-    _experience.dispose();
+    _area.dispose();
+    _years.dispose();
+    _details.dispose();
     _skills.dispose();
     _interests.dispose();
     _availability.dispose();
+    _about.dispose();
+    _image.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
+    final categories =
+        ref.watch(categoriesProvider).asData?.value ?? const <LookupItem>[];
+    final cities =
+        ref.watch(citiesProvider).asData?.value ?? const <CityItem>[];
     final profile = profileState.asData?.value;
     if (profile != null && !_initialized) {
-      _name.text = profile.fullName;
-      _email.text = profile.email;
-      _phone.text = profile.phone;
-      _bio.text = profile.bio;
-      _location.text = profile.location;
-      _workCategory.text = profile.workCategory;
-      _experience.text = profile.experience;
+      _categoryId = profile.categoryId;
+      _cityId = profile.cityId;
+      _fresher = profile.isFresher;
+      _area.text = profile.area;
+      _years.text = profile.experienceYears?.toString() ?? '';
+      _details.text = profile.experience;
       _skills.text = profile.skills.join(', ');
       _interests.text = profile.interests.join(', ');
       _availability.text = profile.availability;
+      _about.text = profile.bio;
+      _image.text = profile.profileImageUrl ?? '';
       _initialized = true;
     }
+    if (categories.isNotEmpty && _categoryId == null) {
+      _categoryId = categories.first.id;
+    }
+    if (cities.isNotEmpty && _cityId == null) _cityId = cities.first.id;
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit profile')),
+      appBar: AppBar(title: const Text('Edit worker profile')),
       body: profileState.isLoading && profile == null
           ? const Center(child: CircularProgressIndicator())
           : profileState.hasError && profile == null
           ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Couldn’t load your profile'),
-                    const SizedBox(height: 12),
-                    AppButton(
-                      text: 'Try again',
-                      onPressed: () =>
-                          ref.read(profileProvider.notifier).load(),
-                      fullWidth: false,
-                    ),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Could not load your profile.'),
+                  TextButton(
+                    onPressed: () => ref.invalidate(profileProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
               ),
             )
-          : profile == null
-          ? const Center(child: Text('No profile information available.'))
           : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: Form(
-                  key: _formKey,
+                  key: _form,
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircleAvatar(
-                              radius: 42,
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
-                              child: Icon(
-                                Icons.person_outline,
-                                size: 42,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                      if (profile == null)
+                        const Text('Sign in to edit your profile.'),
+                      DropdownButtonFormField<int>(
+                        initialValue: _categoryId,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Main type of work',
+                        ),
+                        items: [
+                          for (final category in categories)
+                            DropdownMenuItem(
+                              value: category.id,
+                              child: Text(category.name),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Profile photo can be added later',
-                              style: Theme.of(context).textTheme.bodySmall,
+                        ],
+                        onChanged: (v) => setState(() => _categoryId = v),
+                        validator: (v) =>
+                            v == null ? 'Choose a work category' : null,
+                      ),
+                      const SizedBox(height: 14),
+                      DropdownButtonFormField<int>(
+                        initialValue: _cityId,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'City'),
+                        items: [
+                          for (final city in cities)
+                            DropdownMenuItem(
+                              value: city.id,
+                              child: Text(city.label),
                             ),
-                          ],
+                        ],
+                        onChanged: (v) => setState(() => _cityId = v),
+                        validator: (v) => v == null ? 'Choose a city' : null,
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _area,
+                        decoration: const InputDecoration(
+                          labelText: 'Area / locality (optional)',
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      AppTextField(
-                        label: 'Full name',
-                        controller: _name,
-                        prefixIcon: const Icon(Icons.person_outline),
-                        validator: (value) =>
-                            value == null || value.trim().isEmpty
-                            ? 'Enter your full name'
-                            : null,
+                      const SizedBox(height: 14),
+                      SwitchListTile(
+                        title: const Text('I am a fresher'),
+                        value: _fresher,
+                        onChanged: (v) => setState(() => _fresher = v),
                       ),
-                      const SizedBox(height: 16),
-                      AppTextField(
-                        label: 'Email',
-                        controller: _email,
-                        enabled: false,
-                        prefixIcon: const Icon(Icons.email_outlined),
-                      ),
-                      const SizedBox(height: 16),
-                      AppTextField(
-                        label: 'Phone number',
-                        controller: _phone,
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: const Icon(Icons.phone_outlined),
-                      ),
-                      const SizedBox(height: 16),
-                      AppTextField(
-                        label: 'Location',
-                        controller: _location,
-                        prefixIcon: const Icon(Icons.location_on_outlined),
-                      ),
-                      if (!profile.isEmployer) ...[
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          label: 'Main type of work',
-                          controller: _workCategory,
-                        ),
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          label: 'Experience (or Fresher)',
-                          controller: _experience,
-                        ),
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          label: 'Skills (separate with commas)',
-                          controller: _skills,
-                        ),
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          label: 'Interested in (separate with commas)',
-                          controller: _interests,
-                        ),
-                        const SizedBox(height: 16),
-                        AppTextField(
-                          label: 'Availability',
-                          controller: _availability,
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      AppTextField(
-                        label: profile.isEmployer
-                            ? 'About you or your business'
-                            : 'About you',
-                        controller: _bio,
-                        prefixIcon: const Icon(Icons.notes_outlined),
-                        textInputAction: TextInputAction.newline,
-                      ),
-                      if (profile.isEmployer) ...[
-                        const SizedBox(height: 16),
+                      if (!_fresher) ...[
+                        const SizedBox(height: 14),
                         TextFormField(
-                          initialValue: profile.companyName ?? '',
-                          enabled: false,
+                          controller: _years,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           decoration: const InputDecoration(
-                            labelText: 'Company name',
-                            prefixIcon: Icon(Icons.business_outlined),
+                            labelText: 'Experience in years',
+                          ),
+                          validator: (v) {
+                            final years = double.tryParse(v ?? '');
+                            return years == null || years < 0
+                                ? 'Enter valid experience years'
+                                : null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _details,
+                          decoration: const InputDecoration(
+                            labelText: 'Experience details',
                           ),
                         ),
                       ],
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _skills,
+                        decoration: const InputDecoration(
+                          labelText: 'Skills (comma separated)',
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _interests,
+                        decoration: const InputDecoration(
+                          labelText: 'Interests (comma separated)',
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _availability,
+                        decoration: const InputDecoration(
+                          labelText: 'Availability',
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _about,
+                        maxLines: 4,
+                        decoration: const InputDecoration(labelText: 'About'),
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _image,
+                        decoration: const InputDecoration(
+                          labelText: 'Profile photo URL (optional)',
+                        ),
+                      ),
                       const SizedBox(height: 24),
-                      AppButton(
-                        text: 'Save changes',
-                        isLoading: _saving,
-                        onPressed: _save,
+                      FilledButton(
+                        onPressed:
+                            _saving ||
+                                categories.isEmpty ||
+                                cities.isEmpty ||
+                                profile == null
+                            ? null
+                            : _save,
+                        child: _saving
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator(),
+                              )
+                            : const Text('Save profile'),
                       ),
                     ],
                   ),
@@ -208,45 +218,52 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_form.currentState!.validate()) return;
     final current = ref.read(profileProvider).asData?.value;
-    if (current == null) return;
+    if (current == null || _categoryId == null || _cityId == null) return;
     setState(() => _saving = true);
-    Object? saveError;
     try {
       await ref
           .read(profileProvider.notifier)
           .save(
             current.copyWith(
-              fullName: _name.text.trim(),
-              phone: _phone.text.trim(),
-              bio: _bio.text.trim(),
-              location: _location.text.trim(),
-              workCategory: _workCategory.text.trim(),
-              experience: _experience.text.trim(),
-              skills: _parseList(_skills.text),
-              interests: _parseList(_interests.text),
+              categoryId: _categoryId,
+              cityId: _cityId,
+              area: _area.text.trim(),
+              isFresher: _fresher,
+              experienceYears: _fresher ? null : double.tryParse(_years.text),
+              experience: _fresher ? '' : _details.text.trim(),
+              skills: _split(_skills.text),
+              interests: _split(_interests.text),
               availability: _availability.text.trim(),
+              bio: _about.text.trim(),
+              profileImageUrl: _image.text.trim().isEmpty
+                  ? null
+                  : _image.text.trim(),
             ),
           );
-    } catch (error) {
-      saveError = error;
-    }
-    if (!mounted) return;
-    setState(() => _saving = false);
-    if (saveError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not save profile: $saveError')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
-      Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Worker profile saved.')));
+        Navigator.of(context).pop();
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Could not save profile. Check the fields and try again.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
-  List<String> _parseList(String value) => value
+  List<String> _split(String value) => value
       .split(',')
       .map((item) => item.trim())
       .where((item) => item.isNotEmpty)

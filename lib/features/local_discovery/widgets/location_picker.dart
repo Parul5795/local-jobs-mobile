@@ -42,7 +42,7 @@ class _LocationPickerSheet extends StatefulWidget {
 class _LocationPickerSheetState extends State<_LocationPickerSheet> {
   late String _area = widget.selectedArea;
   late double? _radius = widget.selectedRadius;
-  late bool _nearMe = widget.selectedArea == 'Kalyani Nagar';
+  bool _nearMe = false;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -63,10 +63,13 @@ class _LocationPickerSheetState extends State<_LocationPickerSheet> {
               title: const Text('Near me'),
               trailing: _nearMe ? const Icon(Icons.check) : null,
               selected: _nearMe,
-              onTap: () => setState(() {
-                _area = 'Kalyani Nagar';
-                _nearMe = true;
-              }),
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Device location search is not available yet. Choose an area instead.',
+                  ),
+                ),
+              ),
             ),
             const Text('Choose area'),
             Wrap(
@@ -102,12 +105,9 @@ class _LocationPickerSheetState extends State<_LocationPickerSheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(
-                  LocationChoice(
-                    area: _area == 'Near me' ? 'Kalyani Nagar' : _area,
-                    radiusKm: _radius,
-                  ),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(LocationChoice(area: _area, radiusKm: _radius)),
                 child: const Text('Show results'),
               ),
             ),

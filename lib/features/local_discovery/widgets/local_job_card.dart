@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-
 import '../models/local_job.dart';
 
 class LocalJobCard extends StatelessWidget {
   final LocalJob job;
   final VoidCallback onTap;
   const LocalJobCard({super.key, required this.job, required this.onTap});
-
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
@@ -16,11 +14,22 @@ class LocalJobCard extends StatelessWidget {
         children: [
           Text(job.title, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 6),
-          Text('📍 ${job.location} · ${job.distanceKm.toStringAsFixed(1)} km'),
+          Text(
+            [
+              job.location,
+              if (job.distanceKm != null)
+                '${job.distanceKm!.toStringAsFixed(1)} km',
+            ].join(' · '),
+          ),
           const SizedBox(height: 6),
           Text(job.pay, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 4),
-          Text('${job.workType}  ·  ${job.availability}'),
+          Text(
+            [
+              job.workType,
+              job.experience,
+            ].where((v) => v.isNotEmpty).join(' · '),
+          ),
           const SizedBox(height: 4),
           Text(
             'Posted ${job.postedAt}',

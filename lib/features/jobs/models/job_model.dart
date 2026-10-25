@@ -1,22 +1,28 @@
 import 'package:equatable/equatable.dart';
+import '../../localjobs/models/localjobs_models.dart';
 
 class Job extends Equatable {
-  final String id;
-  final String title;
-  final String company;
-  final String location;
-  final String city;
-  final String category;
-  final String description;
-  final String employmentType;
-  final String experienceLevel;
-  final String salary;
-  final String postedAt;
+  final String id,
+      title,
+      company,
+      location,
+      city,
+      category,
+      description,
+      employmentType,
+      experienceLevel,
+      salary,
+      postedAt;
   final bool isFeatured;
-  final List<String> skills;
-  final List<String> requirements;
-
-  const Job({
+  final List<String> skills, requirements;
+  final int categoryId, cityId;
+  final String userId, paymentPeriod, workType, experienceRequirement, status;
+  final double? salaryAmount;
+  final DateTime createdAt, updatedAt;
+  final DateTime? startDate;
+  final bool isActive;
+  final String? area;
+  Job({
     required this.id,
     required this.title,
     required this.company,
@@ -31,95 +37,104 @@ class Job extends Equatable {
     required this.isFeatured,
     required this.skills,
     required this.requirements,
-  });
-
-  factory Job.fromJson(Map<String, dynamic> json) {
-    return Job(
-      id: json['id']?.toString() ?? '',
-      title: json['title']?.toString() ?? '',
-      company: json['company']?.toString() ?? '',
-      location: json['location']?.toString() ?? '',
-      city: json['city']?.toString() ?? '',
-      category: json['category']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
-      employmentType: json['employmentType']?.toString() ?? '',
-      experienceLevel: json['experienceLevel']?.toString() ?? '',
-      salary: json['salary']?.toString() ?? '',
-      postedAt: json['postedAt']?.toString() ?? '',
-      isFeatured: json['isFeatured'] as bool? ?? false,
-      skills: List<String>.from(json['skills'] ?? const []),
-      requirements: List<String>.from(json['requirements'] ?? const []),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'company': company,
-      'location': location,
-      'city': city,
-      'category': category,
-      'description': description,
-      'employmentType': employmentType,
-      'experienceLevel': experienceLevel,
-      'salary': salary,
-      'postedAt': postedAt,
-      'isFeatured': isFeatured,
-      'skills': skills,
-      'requirements': requirements,
-    };
-  }
-
-  Job copyWith({
-    String? id,
-    String? title,
-    String? company,
-    String? location,
-    String? city,
-    String? category,
-    String? description,
-    String? employmentType,
-    String? experienceLevel,
-    String? salary,
-    String? postedAt,
-    bool? isFeatured,
-    List<String>? skills,
-    List<String>? requirements,
-  }) {
-    return Job(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      company: company ?? this.company,
-      location: location ?? this.location,
-      city: city ?? this.city,
-      category: category ?? this.category,
-      description: description ?? this.description,
-      employmentType: employmentType ?? this.employmentType,
-      experienceLevel: experienceLevel ?? this.experienceLevel,
-      salary: salary ?? this.salary,
-      postedAt: postedAt ?? this.postedAt,
-      isFeatured: isFeatured ?? this.isFeatured,
-      skills: skills ?? this.skills,
-      requirements: requirements ?? this.requirements,
-    );
-  }
-
+    this.categoryId = 0,
+    this.cityId = 0,
+    this.userId = '',
+    this.paymentPeriod = 'Monthly',
+    this.workType = '',
+    this.experienceRequirement = '',
+    this.status = 'Active',
+    this.salaryAmount,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    this.startDate,
+    this.isActive = true,
+    this.area,
+  }) : createdAt =
+           createdAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+       updatedAt =
+           updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  factory Job.fromJson(Map<String, dynamic> json) =>
+      Job.fromPost(JobPost.fromJson(json));
+  factory Job.fromPost(JobPost post) => Job(
+    id: post.id,
+    title: post.title,
+    company: post.userName,
+    location: post.location,
+    city: post.cityName,
+    category: post.categoryName,
+    description: post.description,
+    employmentType: post.workType,
+    experienceLevel: post.experienceRequirement,
+    salary: post.salaryLabel,
+    postedAt: post.postedAt,
+    isFeatured: false,
+    skills: const [],
+    requirements: const [],
+    categoryId: post.categoryId,
+    cityId: post.cityId,
+    userId: post.userId,
+    paymentPeriod: post.paymentPeriod,
+    workType: post.workType,
+    experienceRequirement: post.experienceRequirement,
+    status: post.status,
+    salaryAmount: post.salary,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+    startDate: post.startDate,
+    isActive: post.isActive,
+    area: post.area,
+  );
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'salary': salaryAmount,
+    'categoryId': categoryId,
+    'categoryName': category,
+    'cityId': cityId,
+    'cityName': city,
+    'cityState': '',
+    'userId': userId,
+    'userName': company,
+    'isActive': isActive,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'workType': workType,
+    'experienceRequirement': experienceRequirement,
+    'paymentPeriod': paymentPeriod,
+    'startDate': startDate?.toIso8601String(),
+    'status': status,
+    'area': area,
+  };
   @override
   List<Object?> get props => [
-        id,
-        title,
-        company,
-        location,
-        city,
-        category,
-        description,
-        employmentType,
-        experienceLevel,
-        salary,
-        postedAt,
-        isFeatured,
-        skills,
-        requirements,
-      ];
+    id,
+    title,
+    company,
+    location,
+    city,
+    category,
+    description,
+    employmentType,
+    experienceLevel,
+    salary,
+    postedAt,
+    isFeatured,
+    skills,
+    requirements,
+    categoryId,
+    cityId,
+    userId,
+    paymentPeriod,
+    workType,
+    experienceRequirement,
+    status,
+    salaryAmount,
+    createdAt,
+    updatedAt,
+    startDate,
+    isActive,
+    area,
+  ];
 }

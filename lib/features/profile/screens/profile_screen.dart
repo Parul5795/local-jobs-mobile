@@ -35,10 +35,10 @@ class ProfileScreen extends ConsumerWidget {
       bottomNavigationBar: const LocalNavigationBar(selectedIndex: 3),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => _ProfileMessage(
+        error: (_, _) => _ProfileMessage(
           icon: Icons.cloud_off_outlined,
           title: 'Couldn’t load your profile',
-          detail: error.toString(),
+          detail: 'Check your connection and try again.',
           action: AppButton(
             text: 'Try again',
             fullWidth: false,
@@ -148,12 +148,13 @@ class _ProfileContent extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 20),
-                    OutlinedButton.icon(
-                      onPressed: () =>
-                          context.pushNamed(EditProfileScreen.routeName),
-                      icon: const Icon(Icons.edit_outlined),
-                      label: const Text('Edit profile'),
-                    ),
+                    if (!profile.isEmployer)
+                      OutlinedButton.icon(
+                        onPressed: () =>
+                            context.pushNamed(EditProfileScreen.routeName),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text('Edit worker profile'),
+                      ),
                   ],
                 ),
               ),

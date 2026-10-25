@@ -1,18 +1,11 @@
-class LocalPerson {
-  final String id;
-  final String name;
-  final String primaryWork;
-  final String location;
-  final double distanceKm;
-  final String experience;
-  final List<String> skills;
-  final List<String> interests;
-  final String availability;
-  final String about;
-  final int contactCount;
-  final String? photoUrl;
-  final String phone;
+import '../../localjobs/models/localjobs_models.dart';
 
+class LocalPerson {
+  final String id, name, primaryWork, location, experience, availability, about;
+  final List<String> skills, interests;
+  final int contactCount;
+  final double? distanceKm;
+  final String? photoUrl, phone;
   const LocalPerson({
     required this.id,
     required this.name,
@@ -25,10 +18,31 @@ class LocalPerson {
     required this.availability,
     required this.about,
     required this.contactCount,
-    required this.phone,
+    this.phone,
     this.photoUrl,
   });
-
+  factory LocalPerson.fromWorker(WorkerProfile worker) => LocalPerson(
+    id: worker.userId,
+    name: worker.name,
+    primaryWork: worker.categoryName,
+    location: worker.location,
+    distanceKm: null,
+    experience: worker.experienceLabel,
+    skills: worker.skills
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList(),
+    interests: worker.interests
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList(),
+    availability: worker.availability,
+    about: worker.about,
+    contactCount: worker.contactCount,
+    photoUrl: worker.profileImageUrl,
+  );
   LocalPerson copyWith({int? contactCount}) => LocalPerson(
     id: id,
     name: name,
@@ -44,11 +58,10 @@ class LocalPerson {
     phone: phone,
     photoUrl: photoUrl,
   );
-
   bool matches(String query) {
     final term = query.trim().toLowerCase();
     if (term.isEmpty) return true;
-    final searchable = [
+    return [
       name,
       primaryWork,
       location,
@@ -57,7 +70,6 @@ class LocalPerson {
       about,
       ...skills,
       ...interests,
-    ].join(' ').toLowerCase();
-    return searchable.contains(term);
+    ].join(' ').toLowerCase().contains(term);
   }
 }

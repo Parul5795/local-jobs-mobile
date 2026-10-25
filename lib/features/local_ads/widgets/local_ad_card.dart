@@ -3,16 +3,16 @@ import '../models/local_ad.dart';
 
 class LocalAdCard extends StatelessWidget {
   final LocalAd ad;
-  final VoidCallback onView;
-  final VoidCallback onContact;
-
+  final VoidCallback onView, onContact;
+  final VoidCallback? onEdit, onDeactivate;
   const LocalAdCard({
     super.key,
     required this.ad,
     required this.onView,
     required this.onContact,
+    this.onEdit,
+    this.onDeactivate,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -25,6 +25,24 @@ class LocalAdCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (ad.imageUrls.isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    ad.imageUrls.first,
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const SizedBox(
+                      height: 80,
+                      child: Center(
+                        child: Icon(Icons.image_not_supported_outlined),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               Text(
                 ad.publisher,
                 style: theme.textTheme.labelLarge?.copyWith(
@@ -41,7 +59,10 @@ class LocalAdCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${ad.location} · ${ad.postedAt}',
+                [
+                  ad.location,
+                  ad.postedAt,
+                ].where((s) => s.isNotEmpty).join(' · '),
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 10),
@@ -65,6 +86,18 @@ class LocalAdCard extends StatelessWidget {
                     onPressed: onContact,
                     child: const Text('Contact'),
                   ),
+                  if (onEdit != null)
+                    TextButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      label: const Text('Edit'),
+                    ),
+                  if (onDeactivate != null)
+                    TextButton.icon(
+                      onPressed: onDeactivate,
+                      icon: const Icon(Icons.visibility_off_outlined, size: 16),
+                      label: const Text('Deactivate'),
+                    ),
                 ],
               ),
             ],

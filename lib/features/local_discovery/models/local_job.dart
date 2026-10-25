@@ -1,20 +1,21 @@
+import '../../localjobs/models/localjobs_models.dart';
+
 class LocalJob {
-  final String id;
-  final String title;
-  final String category;
-  final String location;
-  final double distanceKm;
-  final String pay;
-  final String workType;
-  final String experience;
-  final String availability;
-  final String description;
-  final String requirements;
-  final String employer;
+  final String id,
+      title,
+      category,
+      location,
+      pay,
+      workType,
+      experience,
+      availability,
+      description,
+      requirements,
+      employer,
+      postedAt;
+  final double? distanceKm;
   final String? employerId;
   final String contact;
-  final String postedAt;
-
   const LocalJob({
     required this.id,
     required this.title,
@@ -32,12 +33,30 @@ class LocalJob {
     required this.contact,
     required this.postedAt,
   });
-
+  factory LocalJob.fromPost(JobPost job) => LocalJob(
+    id: job.id,
+    title: job.title,
+    category: job.categoryName,
+    location: job.location,
+    distanceKm: null,
+    pay: job.salaryLabel,
+    workType: job.workType,
+    experience: job.experienceRequirement,
+    availability: job.startDate == null
+        ? ''
+        : 'Starts ${job.startDate!.day}/${job.startDate!.month}/${job.startDate!.year}',
+    description: job.description,
+    requirements: '',
+    employer: job.userName,
+    employerId: job.userId,
+    contact: '',
+    postedAt: job.postedAt,
+  );
   bool matches(String query) {
     final term = query.trim().toLowerCase();
-    if (term.isEmpty) return true;
-    return '$title $category $description $requirements $experience $availability'
-        .toLowerCase()
-        .contains(term);
+    return term.isEmpty ||
+        '$title $category $description $requirements $experience $availability'
+            .toLowerCase()
+            .contains(term);
   }
 }
