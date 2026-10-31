@@ -41,6 +41,19 @@ final adDetailsProvider = FutureProvider.family<ClassifiedAd, String>(
 final myJobsApiProvider = FutureProvider<PagedResult<JobPost>>(
   (ref) => ref.watch(localJobsRepositoryProvider).getMyJobs(pageSize: 100),
 );
+typedef JobsWorkAdsQuery = ({String keyword, int? cityId, String area});
+
+final jobsWorkAdsProvider = FutureProvider.autoDispose
+    .family<PagedResult<JobPost>, JobsWorkAdsQuery>((ref, query) {
+      return ref
+          .watch(localJobsRepositoryProvider)
+          .getJobs(
+            keyword: query.keyword,
+            cityId: query.cityId,
+            area: query.area,
+            pageSize: 100,
+          );
+    });
 final myAdsProvider = FutureProvider<PagedResult<ClassifiedAd>>(
   (ref) => ref.watch(localJobsRepositoryProvider).getMyAds(pageSize: 100),
 );

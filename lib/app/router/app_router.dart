@@ -95,6 +95,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const JobListScreen(),
       ),
       GoRoute(
+        path: RoutePaths.employerCreateJob,
+        name: RouteNames.employerCreateJob,
+        builder: (context, state) => const JobFormScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.jobDetails,
         name: RouteNames.jobDetails,
         builder: (context, state) {
@@ -153,6 +158,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: RoutePaths.localAdCreate,
+        name: RouteNames.localAdCreate,
+        builder: (context, state) => const CreateLocalAdScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.classifiedDetails,
         name: RouteNames.classifiedDetails,
         builder: (context, state) => ClassifiedDetailsScreen(
@@ -161,11 +171,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               ? state.extra as ClassifiedAd
               : null,
         ),
-      ),
-      GoRoute(
-        path: RoutePaths.localAdCreate,
-        name: RouteNames.localAdCreate,
-        builder: (context, state) => const CreateLocalAdScreen(),
       ),
       GoRoute(
         path: RoutePaths.localAdEdit,
@@ -182,11 +187,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteNames.myJobs,
         builder: (context, state) => const MyJobsScreen(),
       ),
-      GoRoute(
-        path: RoutePaths.employerCreateJob,
-        name: RouteNames.employerCreateJob,
-        builder: (context, state) => const JobFormScreen(),
-      ),
+
       GoRoute(
         path: RoutePaths.employerEditJob,
         name: RouteNames.employerEditJob,

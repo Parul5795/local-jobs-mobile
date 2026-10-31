@@ -2,10 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:local_jobs_mobile/features/localjobs/data/localjobs_api_service.dart';
 import 'package:local_jobs_mobile/features/localjobs/data/localjobs_repository.dart';
 import 'package:local_jobs_mobile/features/localjobs/models/localjobs_models.dart';
+import 'package:local_jobs_mobile/features/localjobs/models/localjobs_requests.dart';
 
 class FakeLocalJobsRepository extends LocalJobsRepository {
   FakeLocalJobsRepository() : super(LocalJobsApiService(Dio()));
-  final job = JobPost(
+  JobPost job = JobPost(
     id: 'job-1',
     title: 'Family Driver Needed',
     description: 'Local driving work',
@@ -15,7 +16,7 @@ class FakeLocalJobsRepository extends LocalJobsRepository {
     cityId: 1,
     cityName: 'Pune',
     cityState: 'Maharashtra',
-    userId: 'employer-1',
+    userId: 'test-',
     userName: 'Local family',
     isActive: true,
     createdAt: DateTime.utc(2026, 1, 1),
@@ -26,6 +27,8 @@ class FakeLocalJobsRepository extends LocalJobsRepository {
     startDate: null,
     status: 'Active',
   );
+  final List<JobPost> ownJobs = [];
+  JobWriteRequest? lastJobUpdateRequest;
   final worker = WorkerProfile(
     userId: 'worker-1',
     name: 'Rajesh Kumar',
@@ -72,9 +75,10 @@ class FakeLocalJobsRepository extends LocalJobsRepository {
     int pageSize = 20,
   }) async {
     final matched =
-        keyword == null ||
-        keyword.isEmpty ||
-        job.title.toLowerCase().contains(keyword.toLowerCase());
+        job.isActive &&
+        (keyword == null ||
+            keyword.isEmpty ||
+            job.title.toLowerCase().contains(keyword.toLowerCase()));
     return PagedResult(
       items: matched ? [job] : [],
       page: page,
@@ -85,16 +89,76 @@ class FakeLocalJobsRepository extends LocalJobsRepository {
   }
 
   @override
+  Future<JobPost> getJob(String id) async {
+    if (job.id == id && job.isActive) return job;
+    throw StateError('Job not found');
+  }
+
+  @override
   Future<PagedResult<JobPost>> getMyJobs({
     int page = 1,
     int pageSize = 20,
   }) async => PagedResult(
-    items: const [],
+    items: ownJobs,
     page: page,
     pageSize: pageSize,
-    totalCount: 0,
-    totalPages: 0,
+    totalCount: ownJobs.length,
+    totalPages: ownJobs.isEmpty ? 0 : 1,
   );
+
+  @override
+  Future<JobPost> updateJob(String id, JobWriteRequest request) async {
+    lastJobUpdateRequest = request;
+    final current = ownJobs.where((item) => item.id == id).firstOrNull ?? job;
+    final updated = JobPost(
+      id: current.id,
+      title: request.title,
+      description: request.description,
+      salary: request.salary,
+      categoryId: request.categoryId,
+      categoryName: current.categoryName,
+      cityId: request.cityId,
+      cityName: current.cityName,
+      cityState: current.cityState,
+      userId: current.userId,
+      userName: current.userName,
+      isActive: request.isActive ?? current.isActive,
+      createdAt: current.createdAt,
+      updatedAt: DateTime.now().toUtc(),
+      workType: request.workType,
+      experienceRequirement: request.experienceRequirement,
+      paymentPeriod: request.paymentPeriod,
+      startDate: request.startDate,
+      status: request.isActive == true ? 'Active' : 'Inactive',
+      area: request.area,
+    );
+    if (job.id == id) job = updated;
+    final index = ownJobs.indexWhere((item) => item.id == id);
+    if (index >= 0) ownJobs[index] = updated;
+    return updated;
+  }
+
+  @override
+  Future<void> deactivateJob(String id) async {
+    final current = ownJobs.where((item) => item.id == id).firstOrNull ?? job;
+    await updateJob(
+      id,
+      JobWriteRequest(
+        title: current.title,
+        description: current.description,
+        salary: current.salary,
+        categoryId: current.categoryId,
+        cityId: current.cityId,
+        area: current.area,
+        workType: current.workType,
+        experienceRequirement: current.experienceRequirement,
+        paymentPeriod: current.paymentPeriod,
+        startDate: current.startDate,
+        isActive: false,
+      ),
+    );
+  }
+
   @override
   Future<PagedResult<WorkerSearchResult>> searchWorkers({
     int? categoryId,

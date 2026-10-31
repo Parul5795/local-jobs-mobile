@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../models/local_ad.dart';
 
 class LocalAdCard extends StatelessWidget {
@@ -21,7 +23,7 @@ class LocalAdCard extends StatelessWidget {
         onTap: onView,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.x4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -51,10 +53,10 @@ class LocalAdCard extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                ad.title.toUpperCase(),
+                ad.title,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w800,
-                  letterSpacing: .4,
+                  letterSpacing: 0,
                 ),
               ),
               const SizedBox(height: 4),
@@ -69,7 +71,13 @@ class LocalAdCard extends StatelessWidget {
               Text(ad.description),
               if (ad.price.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text(ad.price, style: theme.textTheme.titleSmall),
+                Text(
+                  ad.price,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: AppColors.primaryDark,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ],
               const SizedBox(height: 8),
               Wrap(

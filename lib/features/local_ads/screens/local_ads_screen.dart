@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router/route_names.dart';
 import '../../../shared/widgets/local_navigation_bar.dart';
+import '../../../shared/widgets/app_search_field.dart';
 import '../../localjobs/models/localjobs_models.dart';
 import '../../localjobs/providers/localjobs_providers.dart';
 import '../../localjobs/data/localjobs_repository.dart';
 import '../../local_discovery/widgets/location_picker.dart';
+import '../../local_discovery/models/local_job.dart';
+import '../../local_discovery/widgets/local_job_card.dart';
 import '../models/local_ad.dart';
 import '../widgets/local_ad_card.dart';
 
@@ -51,6 +54,19 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
     final error = _showMyAds ? mine!.hasError : feed!.error != null;
     final items = ads.map(LocalAd.fromBackend).toList();
     final featured = items.where((item) => item.featured).toList();
+    final showJobPosts =
+        !_showMyAds &&
+        _categoryId != null &&
+        categories.any(
+          (category) =>
+              category.id == _categoryId &&
+              category.name.toLowerCase().replaceAll(' ', '') == 'jobs/work',
+        );
+    final jobsWorkQuery = (keyword: _query.text, cityId: _cityId, area: _area);
+    final workPosts = showJobPosts
+        ? ref.watch(jobsWorkAdsProvider(jobsWorkQuery))
+        : null;
+    final jobPosts = workPosts?.asData?.value.items ?? const <JobPost>[];
     return Scaffold(
       appBar: AppBar(
         title: Text(_showMyAds ? 'My Ads' : 'Local Classifieds'),
@@ -82,6 +98,9 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
                 ref.invalidate(myAdsProvider);
               } else {
                 await ref.read(localAdsFeedProvider.notifier).load();
+                if (showJobPosts) {
+                  ref.invalidate(jobsWorkAdsProvider(jobsWorkQuery));
+                }
               }
             },
             child: ListView(
@@ -92,7 +111,7 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
                     'A nearby noticeboard for work, services and local finds.',
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  AppSearchField(
                     controller: _query,
                     decoration: InputDecoration(
                       hintText: 'Search local ads',
@@ -183,15 +202,22 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
                     ),
                   ),
                 ],
-                if (isLoading && ads.isEmpty)
+                if (ads.isEmpty &&
+                    jobPosts.isEmpty &&
+                    (isLoading ||
+                        (showJobPosts && workPosts?.isLoading == true)))
                   const Padding(
                     padding: EdgeInsets.all(32),
                     child: Center(child: CircularProgressIndicator()),
                   )
-                else if (error && ads.isEmpty)
+                else if (ads.isEmpty &&
+                    jobPosts.isEmpty &&
+                    (error || workPosts?.hasError == true))
                   _error(
                     context,
-                    _showMyAds
+                    showJobPosts && workPosts?.hasError == true
+                        ? 'Could not load Jobs/Work listings.'
+                        : _showMyAds
                         ? 'Could not load your ads.'
                         : 'Could not load classified ads.',
                     () {
@@ -199,10 +225,13 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
                         ref.invalidate(myAdsProvider);
                       } else {
                         _search();
+                        if (showJobPosts) {
+                          ref.invalidate(jobsWorkAdsProvider(jobsWorkQuery));
+                        }
                       }
                     },
                   )
-                else if (ads.isEmpty)
+                else if (ads.isEmpty && jobPosts.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 30),
                     child: Text(
@@ -213,10 +242,43 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
                     ),
                   )
                 else ...[
+                  if (showJobPosts) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      'JOB POSTS',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (workPosts?.isLoading == true && jobPosts.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    if (workPosts?.hasError == true)
+                      _error(
+                        context,
+                        'Could not load Jobs/Work listings.',
+                        () =>
+                            ref.invalidate(jobsWorkAdsProvider(jobsWorkQuery)),
+                      ),
+                    for (final job in jobPosts)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: LocalJobCard(
+                          job: LocalJob.fromPost(job),
+                          onTap: () => context.pushNamed(
+                            RouteNames.localJobDetails,
+                            pathParameters: {'id': job.id},
+                            extra: job,
+                          ),
+                        ),
+                      ),
+                  ],
                   if (!_showMyAds && featured.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Text(
-                      'FEATURED',
+                      'FEATURED CLASSIFIED ADS',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -237,36 +299,44 @@ class _LocalAdsScreenState extends ConsumerState<LocalAdsScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 18),
-                  Text(
-                    _showMyAds ? 'YOUR ADS' : 'LATEST NEAR YOU',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  for (final item in items)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: LocalAdCard(
-                        ad: item,
-                        onView: () => context.pushNamed(
-                          RouteNames.classifiedDetails,
-                          pathParameters: {'id': item.id},
-                          extra: ads.firstWhere((ad) => ad.id == item.id),
-                        ),
-                        onContact: () => _contactUnavailable(context),
-                        onEdit: _showMyAds
-                            ? () => context.pushNamed(
-                                RouteNames.localAdEdit,
-                                pathParameters: {'id': item.id},
-                                extra: ads.firstWhere((ad) => ad.id == item.id),
-                              )
-                            : null,
-                        onDeactivate: _showMyAds && item.isActive
-                            ? () => _deactivate(context, item.id)
-                            : null,
+                  if (items.isNotEmpty) ...[
+                    const SizedBox(height: 18),
+                    Text(
+                      showJobPosts
+                          ? 'CLASSIFIED ADS'
+                          : _showMyAds
+                          ? 'YOUR ADS'
+                          : 'LATEST NEAR YOU',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                    for (final item in items)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: LocalAdCard(
+                          ad: item,
+                          onView: () => context.pushNamed(
+                            RouteNames.classifiedDetails,
+                            pathParameters: {'id': item.id},
+                            extra: ads.firstWhere((ad) => ad.id == item.id),
+                          ),
+                          onContact: () => _contactUnavailable(context),
+                          onEdit: _showMyAds
+                              ? () => context.pushNamed(
+                                  RouteNames.localAdEdit,
+                                  pathParameters: {'id': item.id},
+                                  extra: ads.firstWhere(
+                                    (ad) => ad.id == item.id,
+                                  ),
+                                )
+                              : null,
+                          onDeactivate: _showMyAds && item.isActive
+                              ? () => _deactivate(context, item.id)
+                              : null,
+                        ),
+                      ),
+                  ],
                   if (!_showMyAds && feed!.error != null) Text(feed.error!),
                   if (!_showMyAds && feed!.hasMore)
                     Center(

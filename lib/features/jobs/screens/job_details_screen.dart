@@ -1,19 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../localjobs/providers/localjobs_providers.dart';
+import '../../employer/widgets/job_management_controls.dart';
+import '../../jobs/widgets/job_status_badge.dart';
 import '../../localjobs/models/localjobs_models.dart';
+import '../../localjobs/providers/localjobs_providers.dart';
 
-class JobDetailsScreen extends ConsumerWidget {
+class JobDetailsScreen extends ConsumerStatefulWidget {
   static const String routeName = 'job-details';
   final String jobId;
   final JobPost? initialJob;
   const JobDetailsScreen({super.key, required this.jobId, this.initialJob});
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final job = initialJob == null
-        ? ref.watch(jobDetailsApiProvider(jobId))
-        : AsyncData(initialJob!);
+  ConsumerState<JobDetailsScreen> createState() => _JobDetailsScreenState();
+}
+
+class _JobDetailsScreenState extends ConsumerState<JobDetailsScreen> {
+  JobPost? _updatedJob;
+
+  @override
+  Widget build(BuildContext context) {
+    final AsyncValue<JobPost> job = _updatedJob != null
+        ? AsyncData(_updatedJob!)
+        : widget.initialJob != null
+        ? AsyncData(widget.initialJob!)
+        : ref.watch(jobDetailsApiProvider(widget.jobId));
     return Scaffold(
       appBar: AppBar(
         title: const Text('Job Details'),
@@ -30,7 +42,8 @@ class JobDetailsScreen extends ConsumerWidget {
             children: [
               const Text('Could not load this job.'),
               TextButton(
-                onPressed: () => ref.invalidate(jobDetailsApiProvider(jobId)),
+                onPressed: () =>
+                    ref.invalidate(jobDetailsApiProvider(widget.jobId)),
                 child: const Text('Try again'),
               ),
             ],
@@ -46,7 +59,9 @@ class JobDetailsScreen extends ConsumerWidget {
                   item.title,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+                JobStatusBadge(isActive: item.isActive),
+                const SizedBox(height: 14),
                 Text(
                   'Posted by ${item.userName}',
                   style: Theme.of(context).textTheme.titleMedium,
@@ -91,6 +106,12 @@ class JobDetailsScreen extends ConsumerWidget {
                     '${item.startDate!.day}/${item.startDate!.month}/${item.startDate!.year}',
                   ),
                 ],
+                const SizedBox(height: 24),
+                JobManagementControls(
+                  job: item,
+                  onJobChanged: (updated) =>
+                      setState(() => _updatedJob = updated),
+                ),
               ],
             ),
           ),
@@ -103,6 +124,7 @@ class JobDetailsScreen extends ConsumerWidget {
 class _DetailChip extends StatelessWidget {
   final String label;
   const _DetailChip({required this.label});
+
   @override
   Widget build(BuildContext context) => Chip(label: Text(label));
 }

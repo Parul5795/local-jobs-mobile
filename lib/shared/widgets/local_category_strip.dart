@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class LocalCategoryStrip extends StatelessWidget {
   final List<String> categories;
   final ValueChanged<String> onSelected;
+  final String? selectedCategory;
 
   const LocalCategoryStrip({
     super.key,
     required this.categories,
     required this.onSelected,
+    this.selectedCategory,
   });
 
   @override
@@ -19,9 +21,10 @@ class LocalCategoryStrip extends StatelessWidget {
         for (final category in categories.take(5))
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: ActionChip(
+            child: ChoiceChip(
               label: Text(category),
-              onPressed: () => onSelected(category),
+              selected: category == selectedCategory,
+              onSelected: (_) => onSelected(category),
             ),
           ),
         TextButton(

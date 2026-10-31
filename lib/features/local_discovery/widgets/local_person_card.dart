@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/theme/app_spacing.dart';
 import '../models/local_person.dart';
 
 class LocalPersonCard extends StatelessWidget {
@@ -16,7 +17,7 @@ class LocalPersonCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.x4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -69,6 +70,13 @@ class LocalPersonCard extends StatelessWidget {
                 person.experience,
               ].where((v) => v.isNotEmpty).join(' · '),
             ),
+            if (person.contactCount > 0) ...[
+              const SizedBox(height: AppSpacing.x2),
+              Text(
+                '${person.contactCount} contacts',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
             if (person.availability.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(

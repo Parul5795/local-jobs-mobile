@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/network/api_exceptions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../localjobs/data/localjobs_repository.dart';
@@ -21,9 +22,9 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
   final _title = TextEditingController(),
       _description = TextEditingController(),
       _area = TextEditingController(),
-      _salary = TextEditingController(),
-      _workType = TextEditingController(text: 'Full-time'),
-      _experience = TextEditingController(text: 'Any experience');
+      _salary = TextEditingController();
+  String _workType = 'Full-time';
+  String _experience = 'Any';
   int? _categoryId, _cityId;
   String _period = 'Monthly';
   DateTime? _startDate;
@@ -38,8 +39,10 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
       _description.text = job.description;
       _area.text = job.area ?? '';
       _salary.text = job.salary?.toString() ?? '';
-      _workType.text = job.workType;
-      _experience.text = job.experienceRequirement;
+      _workType = job.workType.isEmpty ? 'Full-time' : job.workType;
+      _experience = job.experienceRequirement.isEmpty
+          ? 'Any'
+          : job.experienceRequirement;
       _categoryId = job.categoryId;
       _cityId = job.cityId;
       _period = job.paymentPeriod;
@@ -57,8 +60,6 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
     _description.dispose();
     _area.dispose();
     _salary.dispose();
-    _workType.dispose();
-    _experience.dispose();
     super.dispose();
   }
 
@@ -72,8 +73,10 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
       _description.text = job.description;
       _area.text = job.area ?? '';
       _salary.text = job.salary?.toString() ?? '';
-      _workType.text = job.workType;
-      _experience.text = job.experienceRequirement;
+      _workType = job.workType.isEmpty ? 'Full-time' : job.workType;
+      _experience = job.experienceRequirement.isEmpty
+          ? 'Any'
+          : job.experienceRequirement;
       _categoryId = job.categoryId;
       _cityId = job.cityId;
       _period = job.paymentPeriod;
@@ -117,8 +120,26 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      if (categoryState.isLoading || cityState.isLoading)
+                        const LinearProgressIndicator(),
                       if (categoryState.hasError || cityState.hasError)
-                        const Text('Could not load categories or cities.'),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Could not load categories or cities.'),
+                            TextButton(
+                              onPressed: () {
+                                if (categoryState.hasError) {
+                                  ref.invalidate(categoriesProvider);
+                                }
+                                if (cityState.hasError) {
+                                  ref.invalidate(citiesProvider);
+                                }
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
                       DropdownButtonFormField<int>(
                         initialValue: _categoryId,
                         isExpanded: true,
@@ -161,7 +182,7 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _title,
-                        maxLength: 200,
+                        maxLength: 100,
                         decoration: const InputDecoration(
                           labelText: 'Job title',
                         ),
@@ -171,26 +192,53 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
                       TextFormField(
                         controller: _description,
                         maxLines: 4,
-                        maxLength: 5000,
+                        maxLength: 2000,
                         decoration: const InputDecoration(
                           labelText: 'Describe the work',
                         ),
                         validator: _required,
                       ),
                       const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _workType,
+                      DropdownButtonFormField<String>(
+                        initialValue: _workType,
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Work type',
                         ),
+                        items: [
+                          for (final option in [
+                            ..._workTypes,
+                            if (!_workTypes.contains(_workType)) _workType,
+                          ])
+                            DropdownMenuItem(
+                              value: option,
+                              child: Text(option),
+                            ),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _workType = value ?? 'Full-time'),
                         validator: _required,
                       ),
                       const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _experience,
+                      DropdownButtonFormField<String>(
+                        initialValue: _experience,
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Experience requirement',
                         ),
+                        items: [
+                          for (final option in [
+                            ..._experienceOptions,
+                            if (!_experienceOptions.contains(_experience))
+                              _experience,
+                          ])
+                            DropdownMenuItem(
+                              value: option,
+                              child: Text(option),
+                            ),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _experience = value ?? 'Any'),
                         validator: _required,
                       ),
                       const SizedBox(height: 14),
@@ -250,9 +298,7 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
                             final date = await showDatePicker(
                               context: context,
                               initialDate: _startDate ?? DateTime.now(),
-                              firstDate: DateTime.now().subtract(
-                                const Duration(days: 1),
-                              ),
+                              firstDate: DateTime.now(),
                               lastDate: DateTime.now().add(
                                 const Duration(days: 3650),
                               ),
@@ -295,9 +341,18 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
     );
   }
 
+  static const _workTypes = ['Full-time', 'Part-time', 'Temporary', 'Flexible'];
+  static const _experienceOptions = [
+    'Fresher welcome',
+    '1-2 years',
+    '3-5 years',
+    '5+ years',
+    'Any',
+  ];
   String? _required(String? v) =>
       v == null || v.trim().isEmpty ? 'This field is required' : null;
   Future<void> _save() async {
+    if (_saving) return;
     if (!_form.currentState!.validate() ||
         _categoryId == null ||
         _cityId == null) {
@@ -310,21 +365,28 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
         description: _description.text,
         categoryId: _categoryId!,
         cityId: _cityId!,
-        workType: _workType.text,
-        experienceRequirement: _experience.text,
+        workType: _workType,
+        experienceRequirement: _experience,
         paymentPeriod: _period,
         salary: _salary.text.trim().isEmpty
             ? null
             : double.parse(_salary.text.trim()),
-        startDate: _startDate,
+        startDate: _startDate == null
+            ? null
+            : DateTime.utc(
+                _startDate!.year,
+                _startDate!.month,
+                _startDate!.day,
+              ),
         area: _area.text,
         isActive: widget.jobId == null ? null : _isActive,
       );
       final repo = ref.read(localJobsRepositoryProvider);
+      final JobPost savedJob;
       if (widget.jobId == null) {
-        await repo.createJob(request);
+        savedJob = await repo.createJob(request);
       } else {
-        await repo.updateJob(widget.jobId!, request);
+        savedJob = await repo.updateJob(widget.jobId!, request);
         ref.invalidate(jobDetailsApiProvider(widget.jobId!));
       }
       ref.invalidate(myJobsApiProvider);
@@ -337,17 +399,16 @@ class _JobFormScreenState extends ConsumerState<JobFormScreen> {
             ),
           ),
         );
-        context.pop();
+        context.pop(savedJob);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Could not save the job. Check the details and try again.',
-            ),
-          ),
-        );
+        final message = error is ApiException
+            ? error.message
+            : 'Could not save the job. Check the details and try again.';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
